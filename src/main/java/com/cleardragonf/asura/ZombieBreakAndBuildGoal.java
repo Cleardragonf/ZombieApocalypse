@@ -4,10 +4,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 
 import java.util.EnumSet;
 
@@ -15,11 +15,13 @@ public class ZombieBreakAndBuildGoal extends Goal {
     private final Zombie zombie;
     private final double speed;
     private BlockPos targetPos;
+    private final MeleeAttackGoal meleeAttackGoal;
 
     public ZombieBreakAndBuildGoal(Zombie zombie, double speed) {
         this.zombie = zombie;
         this.speed = speed;
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        this.meleeAttackGoal = new MeleeAttackGoal(zombie, speed, true);
     }
 
     @Override
@@ -58,7 +60,6 @@ public class ZombieBreakAndBuildGoal extends Goal {
         System.out.println("Updated pathfinding to new target: " + newTarget);
     }
 
-
     @Override
     public void tick() {
         if (this.targetPos == null) {
@@ -76,42 +77,30 @@ public class ZombieBreakAndBuildGoal extends Goal {
         System.out.println("Current zombie position: " + zombiePos);
         System.out.println("Distance squared to target: " + distanceSquared);
 
-        if (distanceSquared <= 1.0D) {
-//            breakBlock();
-        } else if (zombiePos.getY() < this.targetPos.getY()) {
-            // buildUp();
+        if (distanceSquared <= 1.5D) {
+            this.meleeAttackGoal.start();
         } else {
-            buildTowards();
-        }
+            this.meleeAttackGoal.stop();
 
-        // Check if the zombie's navigation needs to be updated
-        if (this.zombie.getNavigation().isDone()) {
-            System.out.println("Zombie navigation is done. Recalculating path.");
-            this.zombie.getNavigation().moveTo(targetVec.x, targetVec.y, targetVec.z, this.speed);
-        } else {
-            System.out.println("Zombie navigation is not done. Current position: " + this.zombie.blockPosition());
+            if (distanceSquared <= 2.0D) {
+                // This is within melee attack range
+                this.meleeAttackGoal.tick();
+            } else if (zombiePos.getY() < this.targetPos.getY()) {
+                // buildUp();
+            } else {
+                buildTowards();
+            }
+
+            // Check if the zombie's navigation needs to be updated
+            if (this.zombie.getNavigation().isDone()) {
+                System.out.println("Zombie navigation is done. Recalculating path.");
+                this.zombie.getNavigation().moveTo(targetVec.x, targetVec.y, targetVec.z, this.speed);
+            } else {
+                System.out.println("Zombie navigation is not done. Current position: " + this.zombie.blockPosition());
+            }
         }
     }
 
-//
-//    private void breakBlock() {
-//        ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
-//        BlockPos blockPos = this.zombie.blockPosition().above();
-//
-//        if (world.getBlockState(blockPos).getBlock() != Blocks.AIR) {
-//            world.destroyBlock(blockPos, true);
-//        }
-//    }
-
-    //
-//    private void buildUp() {
-//        ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
-//        BlockPos blockPos = this.zombie.blockPosition().above();
-//        if (world.getBlockState(blockPos).getBlock() == Blocks.AIR) {
-//            world.setBlock(blockPos, Blocks.DIRT.defaultBlockState(), 3);
-//            this.zombie.getNavigation().moveTo(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ(), this.speed);
-//        }
-//    }
     private void buildTowards() {
         ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
         BlockPos zombiePos = this.zombie.blockPosition();
@@ -125,12 +114,16 @@ public class ZombieBreakAndBuildGoal extends Goal {
 
         // Place the block in front if it's air
         if (world.getBlockState(blockPosInFront).isAir()) {
-            if (world.getBlockState(blockPosBelowInFront).isAir()) {
-                world.setBlock(blockPosBelowInFront, Blocks.DIRT.defaultBlockState(), 3);
-                System.out.println("Placed block below in front at: " + blockPosBelowInFront);
-            }
+//            if (world.getBlockState(blockPosBelowInFront).isAir()) {
+//                world.setBlock(blockPosBelowInFront, Blocks.DIRT.defaultBlockState(), 3);
+//                System.out.println("Placed block below in front at: " + blockPosBelowInFront);
+//            }
             world.setBlock(blockPosInFront, Blocks.DIRT.defaultBlockState(), 3);
             System.out.println("Placed block in front at: " + blockPosInFront);
+
+            // Force pathfinding update
+            this.zombie.getNavigation().stop();
+            this.zombie.getNavigation().moveTo(blockPosInFront.getX(), blockPosInFront.getY(), blockPosInFront.getZ(), this.speed);
         } else {
             // If the block in front is not accessible, try to build at the sides
             if (world.getBlockState(blockPosSide1).isAir()) {
@@ -141,21 +134,5 @@ public class ZombieBreakAndBuildGoal extends Goal {
                 System.out.println("Placed block at side 2: " + blockPosSide2);
             }
         }
-
-        // Force the navigation update to ensure the zombie moves correctly
-        if (world.getBlockState(blockPosInFront).getBlock() == Blocks.DIRT) {
-            BlockPos currentTarget = this.zombie.getNavigation().getTargetPos();
-            System.out.println("Current target position: " + currentTarget);
-
-            // Debug message for navigation
-            System.out.println("Attempting to move to block at: " + blockPosInFront);
-            if (this.zombie.getNavigation().isDone()) {
-                System.out.println("Zombie navigation is done. Trying to move to: " + blockPosInFront);
-                this.zombie.getNavigation().moveTo(blockPosInFront.getX(), blockPosInFront.getY(), blockPosInFront.getZ(), this.speed);
-            } else {
-                System.out.println("Zombie navigation is not done. Current position: " + this.zombie.blockPosition());
-            }
-        }
     }
-
 }
