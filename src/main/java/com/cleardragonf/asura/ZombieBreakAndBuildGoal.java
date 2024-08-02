@@ -28,7 +28,7 @@ public class ZombieBreakAndBuildGoal extends Goal {
     public boolean canUse() {
         Vec3 playerPos = null;
         if (this.zombie.getCommandSenderWorld() instanceof ServerLevel world) {
-            var nearestPlayer = world.getNearestPlayer(this.zombie, 30.0D); // Changed to 30 blocks
+            var nearestPlayer = world.getNearestPlayer(this.zombie, 30.0D);
             if (nearestPlayer != null) {
                 playerPos = nearestPlayer.position();
             }
@@ -52,14 +52,6 @@ public class ZombieBreakAndBuildGoal extends Goal {
         this.targetPos = null;
     }
 
-    public void updatePathfinding() {
-        // Example method to force pathfinding update or use a custom approach
-        this.zombie.getNavigation().stop();
-        Vec3 newTarget = Vec3.atCenterOf(this.targetPos);
-        this.zombie.getNavigation().moveTo(newTarget.x, newTarget.y, newTarget.z, this.speed);
-        System.out.println("Updated pathfinding to new target: " + newTarget);
-    }
-
     @Override
     public void tick() {
         if (this.targetPos == null) {
@@ -77,7 +69,7 @@ public class ZombieBreakAndBuildGoal extends Goal {
         System.out.println("Current zombie position: " + zombiePos);
         System.out.println("Distance squared to target: " + distanceSquared);
 
-        if (distanceSquared <= 1.5D) {
+        if (distanceSquared <= 0.0D) {
             this.meleeAttackGoal.start();
         } else {
             this.meleeAttackGoal.stop();
@@ -86,7 +78,7 @@ public class ZombieBreakAndBuildGoal extends Goal {
                 // This is within melee attack range
                 this.meleeAttackGoal.tick();
             } else if (zombiePos.getY() < this.targetPos.getY()) {
-                // buildUp();
+                buildUp();
             } else {
                 buildTowards();
             }
@@ -133,6 +125,15 @@ public class ZombieBreakAndBuildGoal extends Goal {
                 world.setBlock(blockPosSide2, Blocks.DIRT.defaultBlockState(), 3);
                 System.out.println("Placed block at side 2: " + blockPosSide2);
             }
+        }
+    }
+
+    private void buildUp() {
+        ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
+        BlockPos blockPosAbove = this.zombie.blockPosition().above();
+        if (world.getBlockState(blockPosAbove).isAir()) {
+            world.setBlock(blockPosAbove, Blocks.DIRT.defaultBlockState(), 3);
+            this.zombie.getNavigation().moveTo(blockPosAbove.getX(), blockPosAbove.getY(), blockPosAbove.getZ(), this.speed);
         }
     }
 }
