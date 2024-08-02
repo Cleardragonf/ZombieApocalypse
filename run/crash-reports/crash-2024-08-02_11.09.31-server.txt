@@ -1,0 +1,177 @@
+---- Minecraft Crash Report ----
+// There are four lights!
+
+Time: 2024-08-02 11:09:31
+Description: Ticking entity
+
+java.lang.NullPointerException: Cannot invoke "net.minecraft.world.entity.LivingEntity.canBeSeenAsEnemy()" because "p_21171_" is null
+	at net.minecraft.world.entity.LivingEntity.canAttack(LivingEntity.java:855) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at com.cleardragonf.asura.ZombieBreakAndBuildGoal.tick(ZombieBreakAndBuildGoal.java:75) ~[%23196!/:?] {re:classloading}
+	at net.minecraft.world.entity.ai.goal.WrappedGoal.tick(WrappedGoal.java:65) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.ai.goal.GoalSelector.tickRunningGoals(GoalSelector.java:120) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.ai.goal.GoalSelector.tick(GoalSelector.java:111) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.Mob.serverAiStep(Mob.java:760) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.entity.LivingEntity.aiStep(LivingEntity.java:2548) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.Mob.aiStep(Mob.java:536) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.entity.monster.Monster.aiStep(Monster.java:42) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.monster.Zombie.aiStep(Zombie.java:236) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,xf:fml:forge:forge_method_redirector}
+	at net.minecraft.world.entity.LivingEntity.tick(LivingEntity.java:2298) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.Mob.tick(Mob.java:337) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.entity.monster.Zombie.tick(Zombie.java:210) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,xf:fml:forge:forge_method_redirector}
+	at net.minecraft.server.level.ServerLevel.tickNonPassenger(ServerLevel.java:693) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.Level.guardEntityTick(Level.java:479) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.level.ServerLevel.lambda$tick$6(ServerLevel.java:343) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.entity.EntityTickList.forEach(EntityTickList.java:54) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:323) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:893) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.dedicated.DedicatedServer.tickChildren(DedicatedServer.java:283) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:814) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:661) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:251) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at java.lang.Thread.run(Thread.java:842) ~[?:?] {}
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- Head --
+Thread: Server thread
+Suspected Mod: 
+	Example Mod (mobspawnmod), Version: 1.0.0
+		at TRANSFORMER/mobspawnmod@1.0.0/com.cleardragonf.asura.ZombieBreakAndBuildGoal.tick(ZombieBreakAndBuildGoal.java:75)
+Stacktrace:
+	at net.minecraft.world.entity.LivingEntity.canAttack(LivingEntity.java:855) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at com.cleardragonf.asura.ZombieBreakAndBuildGoal.tick(ZombieBreakAndBuildGoal.java:75) ~[%23196!/:?] {re:classloading}
+	at net.minecraft.world.entity.ai.goal.WrappedGoal.tick(WrappedGoal.java:65) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.ai.goal.GoalSelector.tickRunningGoals(GoalSelector.java:120) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.ai.goal.GoalSelector.tick(GoalSelector.java:111) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.Mob.serverAiStep(Mob.java:760) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.entity.LivingEntity.aiStep(LivingEntity.java:2548) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.Mob.aiStep(Mob.java:536) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.entity.monster.Monster.aiStep(Monster.java:42) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.monster.Zombie.aiStep(Zombie.java:236) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,xf:fml:forge:forge_method_redirector}
+	at net.minecraft.world.entity.LivingEntity.tick(LivingEntity.java:2298) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.world.entity.Mob.tick(Mob.java:337) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.entity.monster.Zombie.tick(Zombie.java:210) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,xf:fml:forge:forge_method_redirector}
+	at net.minecraft.server.level.ServerLevel.tickNonPassenger(ServerLevel.java:693) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.Level.guardEntityTick(Level.java:479) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.level.ServerLevel.lambda$tick$6(ServerLevel.java:343) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.entity.EntityTickList.forEach(EntityTickList.java:54) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:323) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+-- Entity being ticked --
+Details:
+	Entity Type: minecraft:zombie (net.minecraft.world.entity.monster.Zombie)
+	Entity ID: 191
+	Entity Name: Zombie
+	Entity's Exact location: 5.50, 112.00, 1.50
+	Entity's Block location: World: (5,112,1), Section: (at 5,0,1 in 0,7,0; chunk contains blocks 0,-64,0 to 15,319,15), Region: (0,0; contains chunks 0,0 to 31,31, blocks 0,-64,0 to 511,319,511)
+	Entity's Momentum: 0.00, 0.00, 0.00
+	Entity's Passengers: []
+	Entity's Vehicle: null
+Stacktrace:
+	at net.minecraft.world.level.Level.guardEntityTick(Level.java:479) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.level.ServerLevel.lambda$tick$6(ServerLevel.java:343) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.world.level.entity.EntityTickList.forEach(EntityTickList.java:54) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading}
+	at net.minecraft.server.level.ServerLevel.tick(ServerLevel.java:323) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:893) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.dedicated.DedicatedServer.tickChildren(DedicatedServer.java:283) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:814) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:661) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:251) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at java.lang.Thread.run(Thread.java:842) ~[?:?] {}
+
+
+-- Affected level --
+Details:
+	All players: 1 total; [ServerPlayer['Dev'/118, l='ServerLevel[world]', x=6.81, y=112.00, z=1.58]]
+	Chunk stats: 2401
+	Level dimension: minecraft:overworld
+	Level spawn location: World: (0,104,0), Section: (at 0,8,0 in 0,6,0; chunk contains blocks 0,-64,0 to 15,319,15), Region: (0,0; contains chunks 0,0 to 31,31, blocks 0,-64,0 to 511,319,511)
+	Level time: 704053 game time, 14790 day time
+	Level name: world
+	Level game mode: Game mode: survival (ID 0). Hardcore: false. Cheats: false
+	Level weather: Rain time: 21248 (now: true), thunder time: 7894 (now: true)
+	Known server brands: forge
+	Removed feature flags: 
+	Level was modded: true
+	Level storage version: 0x04ABD - Anvil
+Stacktrace:
+	at net.minecraft.server.MinecraftServer.tickChildren(MinecraftServer.java:893) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.dedicated.DedicatedServer.tickChildren(DedicatedServer.java:283) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:814) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:661) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at net.minecraft.server.MinecraftServer.lambda$spin$2(MinecraftServer.java:251) ~[forge-1.20.1-47.3.5_mapped_official_1.20.1.jar%23191!/:?] {re:classloading,pl:accesstransformer:B}
+	at java.lang.Thread.run(Thread.java:842) ~[?:?] {}
+
+
+-- System Details --
+Details:
+	Minecraft Version: 1.20.1
+	Minecraft Version ID: 1.20.1
+	Operating System: Windows 11 (amd64) version 10.0
+	Java Version: 17.0.12, Oracle Corporation
+	Java VM Version: Java HotSpot(TM) 64-Bit Server VM (mixed mode, sharing), Oracle Corporation
+	Memory: 1329040352 bytes (1267 MiB) / 2181038080 bytes (2080 MiB) up to 17163091968 bytes (16368 MiB)
+	CPUs: 16
+	Processor Vendor: GenuineIntel
+	Processor Name: Intel(R) Core(TM) i7-10700K CPU @ 3.80GHz
+	Identifier: Intel64 Family 6 Model 165 Stepping 5
+	Microarchitecture: unknown
+	Frequency (GHz): 3.79
+	Number of physical packages: 1
+	Number of physical CPUs: 8
+	Number of logical CPUs: 16
+	Graphics card #0 name: Radeon RX 580 Series
+	Graphics card #0 vendor: Advanced Micro Devices, Inc. (0x1002)
+	Graphics card #0 VRAM (MB): 4095.00
+	Graphics card #0 deviceId: 0x67df
+	Graphics card #0 versionInfo: DriverVersion=31.0.14037.17019
+	Memory slot #0 capacity (MB): 16384.00
+	Memory slot #0 clockSpeed (GHz): 2.13
+	Memory slot #0 type: DDR4
+	Memory slot #1 capacity (MB): 16384.00
+	Memory slot #1 clockSpeed (GHz): 2.13
+	Memory slot #1 type: DDR4
+	Memory slot #2 capacity (MB): 16384.00
+	Memory slot #2 clockSpeed (GHz): 2.13
+	Memory slot #2 type: DDR4
+	Memory slot #3 capacity (MB): 16384.00
+	Memory slot #3 clockSpeed (GHz): 2.13
+	Memory slot #3 type: DDR4
+	Virtual memory max (MB): 69547.56
+	Virtual memory used (MB): 53441.00
+	Swap memory total (MB): 4096.00
+	Swap memory used (MB): 108.16
+	JVM Flags: 0 total; 
+	Server Running: true
+	Player Count: 1 / 20; [ServerPlayer['Dev'/118, l='ServerLevel[world]', x=6.81, y=112.00, z=1.58]]
+	Data Packs: vanilla, mod:mobspawnmod, mod:forge
+	Enabled Feature Flags: minecraft:vanilla
+	World Generation: Stable
+	Is Modded: Definitely; Server brand changed to 'forge'
+	Type: Dedicated Server (map_server.txt)
+	ModLauncher: 10.0.9+10.0.9+main.dcd20f30
+	ModLauncher launch target: forgeserveruserdev
+	ModLauncher naming: mcp
+	ModLauncher services: 
+		mixin-0.8.5.jar mixin PLUGINSERVICE 
+		eventbus-6.0.5.jar eventbus PLUGINSERVICE 
+		fmlloader-1.20.1-47.3.5.jar slf4jfixer PLUGINSERVICE 
+		fmlloader-1.20.1-47.3.5.jar object_holder_definalize PLUGINSERVICE 
+		fmlloader-1.20.1-47.3.5.jar runtime_enum_extender PLUGINSERVICE 
+		fmlloader-1.20.1-47.3.5.jar capability_token_subclass PLUGINSERVICE 
+		accesstransformers-8.0.4.jar accesstransformer PLUGINSERVICE 
+		fmlloader-1.20.1-47.3.5.jar runtimedistcleaner PLUGINSERVICE 
+		modlauncher-10.0.9.jar mixin TRANSFORMATIONSERVICE 
+		modlauncher-10.0.9.jar fml TRANSFORMATIONSERVICE 
+	FML Language Providers: 
+		minecraft@1.0
+		lowcodefml@null
+		javafml@null
+	Mod List: 
+		forge-1.20.1-47.3.5_mapped_official_1.20.1.jar    |Minecraft                     |minecraft                     |1.20.1              |DONE      |Manifest: a1:d4:5e:04:4f:d3:d6:e0:7b:37:97:cf:77:b0:de:ad:4a:47:ce:8c:96:49:5f:0a:cf:8c:ae:b2:6d:4b:8a:3f
+		main                                              |Example Mod                   |mobspawnmod                   |1.0.0               |DONE      |Manifest: NOSIGNATURE
+		                                                  |Forge                         |forge                         |47.3.5              |DONE      |Manifest: NOSIGNATURE
+	Crash Report UUID: fad1a851-c703-4183-8873-d6788fb614bd
+	FML: 47.3
+	Forge: net.minecraftforge:47.3.5
