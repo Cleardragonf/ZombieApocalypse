@@ -117,10 +117,6 @@ public class ZombieBreakAndBuildGoal extends Goal {
         if (world.getBlockState(blockPosInFront).isAir()) {
             world.setBlock(blockPosInFront, Blocks.DIRT.defaultBlockState(), 3);
             System.out.println("Placed block in front at: " + blockPosInFront);
-
-            // Force pathfinding update
-            this.zombie.getNavigation().stop();
-            this.zombie.getNavigation().moveTo(blockPosInFront.getX(), blockPosInFront.getY(), blockPosInFront.getZ(), this.speed);
         } else {
             // If the block in front is not accessible, try to build at the sides
             if (world.getBlockState(blockPosSide1).isAir()) {
@@ -131,11 +127,20 @@ public class ZombieBreakAndBuildGoal extends Goal {
                 System.out.println("Placed block at side 2: " + blockPosSide2);
             }
         }
+
+        // Move towards the player regardless of the blocks in front
+        Vec3 targetVec = Vec3.atCenterOf(this.targetPos);
+        this.zombie.getNavigation().stop();
+        this.zombie.getNavigation().moveTo(targetVec.x, targetVec.y, targetVec.z, this.speed);
     }
+
 
     private void buildUp() {
         ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
         BlockPos zombiePos = this.zombie.blockPosition();
+
+        // Stop pathfinding while building
+        this.zombie.getNavigation().stop();
 
         // Check if the zombie is on the ground
         boolean isOnGround = this.zombie.onGround();
@@ -155,6 +160,10 @@ public class ZombieBreakAndBuildGoal extends Goal {
                         world.setBlock(blockBelow, Blocks.DIRT.defaultBlockState(), 3);
                         System.out.println("Placed block below at: " + blockBelow);
                         isJumping = false;
+
+                        // Resume pathfinding after building
+                        Vec3 targetVec = Vec3.atCenterOf(this.targetPos);
+                        this.zombie.getNavigation().moveTo(targetVec.x, targetVec.y, targetVec.z, this.speed);
                     }
                 }
             }
