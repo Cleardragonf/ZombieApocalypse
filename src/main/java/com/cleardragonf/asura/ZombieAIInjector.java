@@ -16,7 +16,6 @@ public class ZombieAIInjector {
             Zombie zombie = (Zombie) event.getEntity();
             zombie.goalSelector.addGoal(1, new ZombieBreakAndBuildGoal(zombie,1.0));
             zombie.goalSelector.addGoal(1, new MeleeAttackGoal(zombie, 1.0D, true));
-
         }
     }
 }

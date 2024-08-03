@@ -28,7 +28,7 @@ public class ZombieBreakAndBuildGoal extends Goal {
     public boolean canUse() {
         Vec3 playerPos = null;
         if (this.zombie.getCommandSenderWorld() instanceof ServerLevel world) {
-            var nearestPlayer = world.getNearestPlayer(this.zombie, 70.0D);
+            var nearestPlayer = world.getNearestPlayer(this.zombie, 30.0D);
             if (nearestPlayer != null) {
                 playerPos = nearestPlayer.position();
             }
@@ -125,25 +125,6 @@ public class ZombieBreakAndBuildGoal extends Goal {
     }
 
     private void buildUp() {
-        ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
-        BlockPos zombiePos = this.zombie.blockPosition();
-        BlockPos blockPosBelow = zombiePos.below();
-        BlockPos blockPosAbove = zombiePos.above();
-
-
-        // Move the zombie up by 1 block
-        BlockPos newPos = zombiePos.above(1);
-        this.zombie.getNavigation().stop();
-        this.zombie.getNavigation().moveTo(newPos.getX(), newPos.getY(), newPos.getZ(), this.speed);
-
-        // Optional: simulate jumping by forcefully updating the position
-        this.zombie.teleportTo(newPos.getX() + 0.5, newPos.getY(1), newPos.getZ() + 0.5);
-
-        // Place a block directly below the zombie if it's air
-        if (world.getBlockState(blockPosBelow).isAir()) {
-            world.setBlock(blockPosBelow, Blocks.DIRT.defaultBlockState(), 3);
-            System.out.println("Placed block below at: " + blockPosBelow);
-        }
-
+        //TODO: Work on Adding a build Updward method
     }
 }
