@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"com.cleardragonf.asura","l":"MobSpawnMod"},{"p":"com.cleardragonf.asura","l":"ZombieAIInjector"},{"p":"com.cleardragonf.asura","l":"ZombieBreakAndBuildGoal"}];updateSearchResults();
