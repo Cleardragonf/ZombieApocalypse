@@ -69,7 +69,7 @@ public class ZombieBreakAndBuildGoal extends Goal {
         System.out.println("Current zombie position: " + zombiePos);
         System.out.println("Distance squared to target: " + distanceSquared);
 
-        if (distanceSquared <= 0.0D) {
+        if (distanceSquared <= 1.5D) {
             this.meleeAttackGoal.start();
         } else {
             this.meleeAttackGoal.stop();
@@ -106,10 +106,6 @@ public class ZombieBreakAndBuildGoal extends Goal {
 
         // Place the block in front if it's air
         if (world.getBlockState(blockPosInFront).isAir()) {
-//            if (world.getBlockState(blockPosBelowInFront).isAir()) {
-//                world.setBlock(blockPosBelowInFront, Blocks.DIRT.defaultBlockState(), 3);
-//                System.out.println("Placed block below in front at: " + blockPosBelowInFront);
-//            }
             world.setBlock(blockPosInFront, Blocks.DIRT.defaultBlockState(), 3);
             System.out.println("Placed block in front at: " + blockPosInFront);
 
@@ -130,10 +126,24 @@ public class ZombieBreakAndBuildGoal extends Goal {
 
     private void buildUp() {
         ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
-        BlockPos blockPosAbove = this.zombie.blockPosition().above();
-        if (world.getBlockState(blockPosAbove).isAir()) {
-            world.setBlock(blockPosAbove, Blocks.DIRT.defaultBlockState(), 3);
-            this.zombie.getNavigation().moveTo(blockPosAbove.getX(), blockPosAbove.getY(), blockPosAbove.getZ(), this.speed);
+        BlockPos zombiePos = this.zombie.blockPosition();
+        BlockPos blockPosBelow = zombiePos.below();
+        BlockPos blockPosAbove = zombiePos.above();
+
+
+        // Move the zombie up by 1 block
+        BlockPos newPos = zombiePos.above();
+        this.zombie.getNavigation().stop();
+        this.zombie.getNavigation().moveTo(newPos.getX(), newPos.getY(2), newPos.getZ(), this.speed);
+
+        // Optional: simulate jumping by forcefully updating the position
+        this.zombie.teleportTo(newPos.getX() + 0.5, newPos.getY(), newPos.getZ() + 0.5);
+
+        // Place a block directly below the zombie if it's air
+        if (world.getBlockState(blockPosBelow).isAir()) {
+            world.setBlock(blockPosBelow, Blocks.DIRT.defaultBlockState(), 3);
+            System.out.println("Placed block below at: " + blockPosBelow);
         }
+
     }
 }
