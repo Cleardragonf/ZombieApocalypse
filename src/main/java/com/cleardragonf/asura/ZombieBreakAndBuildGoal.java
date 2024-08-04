@@ -1,12 +1,18 @@
 package com.cleardragonf.asura;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+
+
+//TODO:  Create A Dig Down Method.
+//TODO:  Update BuildUP() to include a Break Blocks...if Above and continue.
 
 import java.util.EnumSet;
 
@@ -130,10 +136,26 @@ public class ZombieBreakAndBuildGoal extends Goal {
         ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
         BlockPos zombiePos = this.zombie.blockPosition();
 
-        // Check if the zombie is on the ground
-        boolean isOnGround = this.zombie.onGround(); // This might need adjustment if onGround isn't available
+        // Check if the space above the zombie is air
+        BlockPos blockAbove = zombiePos.above(1);
+        BlockPos blockTwoAbove = zombiePos.above(2);
+        BlockState blockAboveState = world.getBlockState(blockAbove);
+        BlockState blockTwoAboveState = world.getBlockState(blockTwoAbove);
 
-        if (isOnGround) {
+        if (!blockAboveState.isAir()) {
+            // If the block directly above is not air, break it
+            Dig(blockAbove);
+        }
+
+        if (!blockTwoAboveState.isAir()) {
+            // If the block two blocks above is not air, break it
+            Dig(blockTwoAbove);
+        }
+
+        // Check if the zombie is on the ground
+        boolean onGround = this.zombie.onGround();
+
+        if (onGround) {
             // If the zombie is on the ground, make it jump
             if (!isJumping) {
                 this.zombie.getJumpControl().jump();
@@ -157,6 +179,15 @@ public class ZombieBreakAndBuildGoal extends Goal {
             this.zombie.getNavigation().moveTo(this.targetPos.getX(), this.targetPos.getY(), this.targetPos.getZ(), this.speed);
         } else {
             this.zombie.getNavigation().stop();
+        }
+    }
+
+    private void Dig(BlockPos blockPos) {
+        ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
+
+        if (!world.getBlockState(blockPos).isAir()) {
+            world.destroyBlock(blockPos, true);
+            System.out.println("Broke block at: " + blockPos);
         }
     }
 }
