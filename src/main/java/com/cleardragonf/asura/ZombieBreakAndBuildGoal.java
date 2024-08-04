@@ -9,12 +9,13 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 
-
-//TODO:  Create A Dig Down Method.
-//TODO:  Update BuildUP() to include a Break Blocks...if Above and continue.
 
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ZombieBreakAndBuildGoal extends Goal {
     private final Zombie zombie;
@@ -26,6 +27,7 @@ public class ZombieBreakAndBuildGoal extends Goal {
     private boolean isDiggingDown = false;
     private boolean isJumping = false;
     private int jumpTicks = 0;
+    private final Map<BlockPos, Integer> blockBreakProgress = new HashMap<>();
 
     public ZombieBreakAndBuildGoal(Zombie zombie, double speed) {
         this.zombie = zombie;
@@ -64,6 +66,7 @@ public class ZombieBreakAndBuildGoal extends Goal {
         this.isDiggingDown = false;
         this.isJumping = false;
         this.jumpTicks = 0;
+        this.blockBreakProgress.clear();
     }
 
     @Override
@@ -84,30 +87,27 @@ public class ZombieBreakAndBuildGoal extends Goal {
             this.meleeAttackGoal.stop();
 
             if (distanceSquared <= 2.0D) {
-                // This is within melee attack range
                 this.meleeAttackGoal.tick();
             } else if (zombiePos.getY() < this.targetPos.getY()) {
                 if (!isBuildingUp) {
                     isBuildingUp = true;
                 }
                 buildUp();
-            } else if(zombiePos.getY() > this.targetPos.getY()){
-                if(!isDiggingDown){
+            } else if (zombiePos.getY() > this.targetPos.getY()) {
+                if (!isDiggingDown) {
                     isDiggingDown = true;
                 }
                 digDown();
-            }else {
+            } else {
                 if (isBuildingUp) {
                     isBuildingUp = false;
                 }
                 buildTowards();
             }
 
-            // Check if the zombie's navigation needs to be updated
             if (!isBuildingUp && this.zombie.getNavigation().isDone()) {
                 this.zombie.getNavigation().moveTo(targetVec.x, targetVec.y, targetVec.z, this.speed);
             } else {
-                System.out.println("Zombie navigation is not done or building up. Current position: " + this.zombie.blockPosition());
             }
         }
     }
@@ -117,49 +117,49 @@ public class ZombieBreakAndBuildGoal extends Goal {
         BlockPos zombiePos = this.zombie.blockPosition();
         Direction direction = this.zombie.getDirection();
 
-        // Define block positions in front of the zombie at different levels
-        BlockPos blockPosInFrontFoot = zombiePos.relative(direction); // Directly in front at foot level
-        BlockPos blockPosInFrontEye = zombiePos.relative(direction).above((int) this.zombie.getEyeHeight()); // Directly in front at eye level
-        BlockPos blockPosInFrontBelow = blockPosInFrontFoot.below(); // One block below in front
+        BlockPos blockPosInFrontFoot = zombiePos.relative(direction);
+        BlockPos blockPosInFrontEye = zombiePos.relative(direction).above((int) this.zombie.getEyeHeight());
+        BlockPos blockPosInFrontBelow = blockPosInFrontFoot.below();
         BlockPos blockPosSide1 = zombiePos.relative(direction.getClockWise()).below();
         BlockPos blockPosSide2 = zombiePos.relative(direction.getCounterClockWise()).below();
 
-        // Define diagonal positions
         BlockPos blockPosFrontRightFoot = blockPosInFrontFoot.relative(direction.getClockWise());
         BlockPos blockPosFrontLeftFoot = blockPosInFrontFoot.relative(direction.getCounterClockWise());
         BlockPos blockPosFrontRightEye = blockPosInFrontEye.relative(direction.getClockWise());
         BlockPos blockPosFrontLeftEye = blockPosInFrontEye.relative(direction.getCounterClockWise());
 
-        // Check and break blocks at eye level
+        boolean shouldMove = true;
+
         if (!world.getBlockState(blockPosInFrontEye).isAir()) {
             Dig(blockPosInFrontEye);
+            shouldMove = false;
         }
         if (!world.getBlockState(blockPosFrontRightEye).isAir()) {
             Dig(blockPosFrontRightEye);
+            shouldMove = false;
         }
         if (!world.getBlockState(blockPosFrontLeftEye).isAir()) {
             Dig(blockPosFrontLeftEye);
+            shouldMove = false;
         }
 
-        // Check and break blocks at foot level
         if (!world.getBlockState(blockPosInFrontFoot).isAir()) {
             Dig(blockPosInFrontFoot);
+            shouldMove = false;
         }
         if (!world.getBlockState(blockPosFrontRightFoot).isAir()) {
             Dig(blockPosFrontRightFoot);
+            shouldMove = false;
         }
         if (!world.getBlockState(blockPosFrontLeftFoot).isAir()) {
             Dig(blockPosFrontLeftFoot);
+            shouldMove = false;
         } else {
-            // If the block in front at foot level is air, continue with placing blocks below if needed
             if (world.getBlockState(blockPosInFrontBelow).isAir()) {
                 world.setBlock(blockPosInFrontBelow, Blocks.DIRT.defaultBlockState(), 3);
-
-                // Force pathfinding update
                 this.zombie.getNavigation().stop();
                 this.zombie.getNavigation().moveTo(blockPosInFrontBelow.getX(), blockPosInFrontBelow.getY(), blockPosInFrontBelow.getZ(), this.speed);
             } else {
-                // If the block in front below is not accessible, try to build at the sides
                 if (world.getBlockState(blockPosSide1).isAir()) {
                     world.setBlock(blockPosSide1, Blocks.DIRT.defaultBlockState(), 3);
                 } else if (world.getBlockState(blockPosSide2).isAir()) {
@@ -167,51 +167,42 @@ public class ZombieBreakAndBuildGoal extends Goal {
                 }
             }
         }
+
+        if (shouldMove) {
+            Vec3 targetVec = Vec3.atCenterOf(this.targetPos);
+            this.zombie.getNavigation().moveTo(targetVec.x, targetVec.y, targetVec.z, this.speed);
+        }
     }
+
 
     private void buildUp() {
         ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
         BlockPos zombiePos = this.zombie.blockPosition();
 
-        // Check if the space above the zombie is air
         BlockPos blockAbove = zombiePos.above(1);
         BlockPos blockTwoAbove = zombiePos.above(2);
         BlockState blockAboveState = world.getBlockState(blockAbove);
         BlockState blockTwoAboveState = world.getBlockState(blockTwoAbove);
 
         if (!blockAboveState.isAir()) {
-            // If the block directly above is not air, break it
             Dig(blockAbove);
-        }
-
-        if (!blockTwoAboveState.isAir()) {
-            // If the block two blocks above is not air, break it
+        } else if (!blockTwoAboveState.isAir()) {
             Dig(blockTwoAbove);
-        }
-
-        // Check if the zombie is on the ground
-        boolean onGround = this.zombie.onGround();
-
-        if (onGround) {
-            // If the zombie is on the ground, make it jump
-            if (!isJumping) {
-                this.zombie.getJumpControl().jump();
-                isJumping = true;
-                jumpTicks = 0;
-            } else {
-                jumpTicks++;
-                // After a short delay (to ensure the zombie is in the air), place the block
-                if (jumpTicks > 10) {
-                    BlockPos blockBelow = zombiePos;
-                    if (world.getBlockState(blockBelow).isAir()) {
-                        world.setBlock(blockBelow, Blocks.DIRT.defaultBlockState(), 3);
-                        isJumping = false;
-                    }
+        } else if (blockAboveState.isAir() && blockTwoAboveState.isAir() && !isJumping) {
+            isJumping = true;
+            this.zombie.getJumpControl().jump();
+        } else if (isJumping) {
+            jumpTicks++;
+            if (jumpTicks > 10) {
+                BlockPos blockBelow = zombiePos;
+                if (world.getBlockState(blockBelow).isAir()) {
+                    world.setBlock(blockBelow, Blocks.DIRT.defaultBlockState(), 3);
+                    isJumping = false;
+                    jumpTicks = 0;
                 }
             }
         }
 
-        // Pause pathfinding until the zombie reaches the target's Y level
         if (zombiePos.getY() >= this.targetPos.getY()) {
             this.zombie.getNavigation().moveTo(this.targetPos.getX(), this.targetPos.getY(), this.targetPos.getZ(), this.speed);
         } else {
@@ -219,24 +210,21 @@ public class ZombieBreakAndBuildGoal extends Goal {
         }
     }
 
-    private void digDown(){
+    private void digDown() {
         ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
         BlockPos zombiePos = this.zombie.blockPosition();
 
-        // Check if the space above the zombie is air
         BlockPos blockBelow = zombiePos.below();
 
-
-        // Check if the zombie is on the ground
-        boolean onGround = this.zombie.onGround();
-
-        if (onGround) {
+        if (this.zombie.onGround()) {
             if (!world.getBlockState(blockBelow).isAir()) {
                 Dig(blockBelow);
+            } else {
+                this.zombie.getJumpControl().jump();
+                this.zombie.moveTo(this.zombie.getX(), this.zombie.getY() - 1, this.zombie.getZ());
             }
         }
 
-        // Pause pathfinding until the zombie reaches the target's Y level
         if (zombiePos.getY() <= this.targetPos.getY()) {
             this.zombie.getNavigation().moveTo(this.targetPos.getX(), this.targetPos.getY(), this.targetPos.getZ(), this.speed);
         } else {
@@ -248,8 +236,22 @@ public class ZombieBreakAndBuildGoal extends Goal {
         ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
 
         if (!world.getBlockState(blockPos).isAir()) {
-            world.destroyBlock(blockPos, true);
-            System.out.println("Broke block at: " + blockPos);
+            BlockState blockState = world.getBlockState(blockPos);
+            float blockHardness = blockState.getDestroySpeed(world, blockPos);
+            int progress = blockBreakProgress.getOrDefault(blockPos, 0);
+
+            // Play digging sound
+            world.playSound(null, blockPos, SoundEvents.BONE_BLOCK_BREAK, SoundSource.BLOCKS, 1.0F, 1.0F);
+
+            progress += 1;
+
+            if (progress >= (blockHardness * 10)) {
+                world.destroyBlock(blockPos, true);
+                blockBreakProgress.remove(blockPos);
+            } else {
+                blockBreakProgress.put(blockPos, progress);
+            }
         }
     }
+
 }
