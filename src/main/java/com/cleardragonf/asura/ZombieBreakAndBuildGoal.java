@@ -23,6 +23,7 @@ public class ZombieBreakAndBuildGoal extends Goal {
     private final MeleeAttackGoal meleeAttackGoal;
 
     private boolean isBuildingUp = false;
+    private boolean isDiggingDown = false;
     private boolean isJumping = false;
     private int jumpTicks = 0;
 
@@ -60,6 +61,7 @@ public class ZombieBreakAndBuildGoal extends Goal {
     public void stop() {
         this.targetPos = null;
         this.isBuildingUp = false;
+        this.isDiggingDown = false;
         this.isJumping = false;
         this.jumpTicks = 0;
     }
@@ -89,7 +91,12 @@ public class ZombieBreakAndBuildGoal extends Goal {
                     isBuildingUp = true;
                 }
                 buildUp();
-            } else {
+            } else if(zombiePos.getY() > this.targetPos.getY()){
+                if(!isDiggingDown){
+                    isDiggingDown = true;
+                }
+                digDown();
+            }else {
                 if (isBuildingUp) {
                     isBuildingUp = false;
                 }
@@ -176,6 +183,31 @@ public class ZombieBreakAndBuildGoal extends Goal {
 
         // Pause pathfinding until the zombie reaches the target's Y level
         if (zombiePos.getY() >= this.targetPos.getY()) {
+            this.zombie.getNavigation().moveTo(this.targetPos.getX(), this.targetPos.getY(), this.targetPos.getZ(), this.speed);
+        } else {
+            this.zombie.getNavigation().stop();
+        }
+    }
+
+    private void digDown(){
+        ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
+        BlockPos zombiePos = this.zombie.blockPosition();
+
+        // Check if the space above the zombie is air
+        BlockPos blockBelow = zombiePos.below();
+
+
+        // Check if the zombie is on the ground
+        boolean onGround = this.zombie.onGround();
+
+        if (onGround) {
+            if (!world.getBlockState(blockBelow).isAir()) {
+                Dig(blockBelow);
+            }
+        }
+
+        // Pause pathfinding until the zombie reaches the target's Y level
+        if (zombiePos.getY() <= this.targetPos.getY()) {
             this.zombie.getNavigation().moveTo(this.targetPos.getX(), this.targetPos.getY(), this.targetPos.getZ(), this.speed);
         } else {
             this.zombie.getNavigation().stop();
