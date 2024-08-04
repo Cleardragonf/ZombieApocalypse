@@ -115,26 +115,56 @@ public class ZombieBreakAndBuildGoal extends Goal {
     private void buildTowards() {
         ServerLevel world = (ServerLevel) this.zombie.getCommandSenderWorld();
         BlockPos zombiePos = this.zombie.blockPosition();
-        var direction = this.zombie.getDirection();
+        Direction direction = this.zombie.getDirection();
 
-        // Define block positions in front and around the zombie, but one block below
-        var blockPosInFront = zombiePos.relative(direction).below(); // One block below
-        var blockPosSide1 = zombiePos.relative(direction.getClockWise()).below();
-        var blockPosSide2 = zombiePos.relative(direction.getCounterClockWise()).below();
+        // Define block positions in front of the zombie at different levels
+        BlockPos blockPosInFrontFoot = zombiePos.relative(direction); // Directly in front at foot level
+        BlockPos blockPosInFrontEye = zombiePos.relative(direction).above((int) this.zombie.getEyeHeight()); // Directly in front at eye level
+        BlockPos blockPosInFrontBelow = blockPosInFrontFoot.below(); // One block below in front
+        BlockPos blockPosSide1 = zombiePos.relative(direction.getClockWise()).below();
+        BlockPos blockPosSide2 = zombiePos.relative(direction.getCounterClockWise()).below();
 
-        // Place the block in front if it's air
-        if (world.getBlockState(blockPosInFront).isAir()) {
-            world.setBlock(blockPosInFront, Blocks.DIRT.defaultBlockState(), 3);
+        // Define diagonal positions
+        BlockPos blockPosFrontRightFoot = blockPosInFrontFoot.relative(direction.getClockWise());
+        BlockPos blockPosFrontLeftFoot = blockPosInFrontFoot.relative(direction.getCounterClockWise());
+        BlockPos blockPosFrontRightEye = blockPosInFrontEye.relative(direction.getClockWise());
+        BlockPos blockPosFrontLeftEye = blockPosInFrontEye.relative(direction.getCounterClockWise());
 
-            // Force pathfinding update
-            this.zombie.getNavigation().stop();
-            this.zombie.getNavigation().moveTo(blockPosInFront.getX(), blockPosInFront.getY(), blockPosInFront.getZ(), this.speed);
+        // Check and break blocks at eye level
+        if (!world.getBlockState(blockPosInFrontEye).isAir()) {
+            Dig(blockPosInFrontEye);
+        }
+        if (!world.getBlockState(blockPosFrontRightEye).isAir()) {
+            Dig(blockPosFrontRightEye);
+        }
+        if (!world.getBlockState(blockPosFrontLeftEye).isAir()) {
+            Dig(blockPosFrontLeftEye);
+        }
+
+        // Check and break blocks at foot level
+        if (!world.getBlockState(blockPosInFrontFoot).isAir()) {
+            Dig(blockPosInFrontFoot);
+        }
+        if (!world.getBlockState(blockPosFrontRightFoot).isAir()) {
+            Dig(blockPosFrontRightFoot);
+        }
+        if (!world.getBlockState(blockPosFrontLeftFoot).isAir()) {
+            Dig(blockPosFrontLeftFoot);
         } else {
-            // If the block in front is not accessible, try to build at the sides
-            if (world.getBlockState(blockPosSide1).isAir()) {
-                world.setBlock(blockPosSide1, Blocks.DIRT.defaultBlockState(), 3);
-            } else if (world.getBlockState(blockPosSide2).isAir()) {
-                world.setBlock(blockPosSide2, Blocks.DIRT.defaultBlockState(), 3);
+            // If the block in front at foot level is air, continue with placing blocks below if needed
+            if (world.getBlockState(blockPosInFrontBelow).isAir()) {
+                world.setBlock(blockPosInFrontBelow, Blocks.DIRT.defaultBlockState(), 3);
+
+                // Force pathfinding update
+                this.zombie.getNavigation().stop();
+                this.zombie.getNavigation().moveTo(blockPosInFrontBelow.getX(), blockPosInFrontBelow.getY(), blockPosInFrontBelow.getZ(), this.speed);
+            } else {
+                // If the block in front below is not accessible, try to build at the sides
+                if (world.getBlockState(blockPosSide1).isAir()) {
+                    world.setBlock(blockPosSide1, Blocks.DIRT.defaultBlockState(), 3);
+                } else if (world.getBlockState(blockPosSide2).isAir()) {
+                    world.setBlock(blockPosSide2, Blocks.DIRT.defaultBlockState(), 3);
+                }
             }
         }
     }
