@@ -12,6 +12,19 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 
+//TODO:  Look at changing What type of block the zombie's use to place down.
+//TODO:  Look at making a bunch of these things configurable...maybe even per night???
+    /*TODO:  Possible Featuers:
+                •  Healer Zombies - Heals entities within a specific Range of them
+                •  Fire Zombies - Sets Everything around it on fire...till they die
+                .  Zombie King - spawns new Zombies around it.
+                •  Zombie Knights - spawn in Armour and have their own AI Attack Setups...
+                •  Zombie heals by doing damage to you.
+                •  Zombie can Steal Weapon
+                •  Make distance a zombie can sense you configurable
+     */
+
+
 
 import java.util.EnumSet;
 import java.util.HashMap;
