@@ -1,5 +1,6 @@
 package com.cleardragonf.asura.rewards.config;
 
+import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.world.entity.EntityType;
@@ -27,6 +28,7 @@ public class RewardsConfig {
     // Helper method to get default rewards from registered entity types
     private static List<String> getDefaultRewardsStrings() {
         return ForgeRegistries.ENTITY_TYPES.getValues().stream()
+                .filter(entityType -> entityType.getCategory() == MobCategory.MONSTER) // Filter to only include Monsters
                 .map(entityType -> ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString() + ":1.0")
                 .collect(Collectors.toList());
     }
