@@ -1,5 +1,6 @@
 package com.cleardragonf.asura;
 
+import com.cleardragonf.asura.rewards.Rewards;
 import com.cleardragonf.asura.rewards.config.RewardsConfig;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
@@ -7,6 +8,7 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -37,6 +39,8 @@ public class HOB {
         ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.COMMON, COMMON_SPEC, "HOB/balances.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, GeneralConfig.SPEC, "HOB/General.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RewardsConfig.SPEC, "HOB/Rewards.toml");
+
+        MinecraftForge.EVENT_BUS.register(Rewards.class);
     }
 
     private void setup(final FMLCommonSetupEvent event) {
