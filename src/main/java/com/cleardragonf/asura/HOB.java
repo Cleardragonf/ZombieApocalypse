@@ -26,7 +26,10 @@ public class HOB {
     public static final String MODID = "mobspawnmod";
     private int tickCounter = 0;
     private static final int TICKS_PER_SECOND = 20;
+    private static final int TICKS_PER_DAY = 24000;
     private static final int SPAWN_INTERVAL = 30 * TICKS_PER_SECOND; // 30 seconds
+    private static final int DAYS_RESET_INTERVAL = 29;
+    public static int currentDay = 0;
 
     public static EconomyManager economyManager;
 
@@ -53,10 +56,22 @@ public class HOB {
             return;
         }
         tickCounter++;
+        if(tickCounter >= TICKS_PER_DAY){
+            tickCounter = 0;
+            currentDay++;
+            if(currentDay > DAYS_RESET_INTERVAL){
+                currentDay = 0;
+            }
+        }
+
         if (tickCounter >= SPAWN_INTERVAL) {
             tickCounter = 0;
             // Implement mob spawning logic here
         }
+    }
+
+    private void onDay30(){
+
     }
 
     @SubscribeEvent
