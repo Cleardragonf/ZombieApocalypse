@@ -8,3 +8,4 @@ public class DayCounterAPI {
         return HOB.currentDay;
     }
 }
+
