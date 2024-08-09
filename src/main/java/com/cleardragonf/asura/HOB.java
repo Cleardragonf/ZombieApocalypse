@@ -43,7 +43,7 @@ public class HOB {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, COMMON_SPEC, "HOB/balances.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, GeneralConfig.SPEC, "HOB/General.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RewardsConfig.SPEC, "HOB/Rewards.toml");
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, DayConfig.DAY_SPEC, "HOB/DayTracking.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, DayConfig.COMMON_SPEC, "HOB/DayTracking.toml");
 
         MinecraftForge.EVENT_BUS.register(Rewards.class);
     }
@@ -109,18 +109,18 @@ public class HOB {
         EconomyCommands.register(event.getServer().getCommands().getDispatcher());
 
         // Load the current day from the config
-        currentDay = DayConfig.COMMON.currentDay.get();
+        currentDay = DayConfig.CURRENT_DAY.get();
         previousDay = currentDay; // Initialize previousDay to currentDay
     }
 
     private void saveConfig() {
         // Save the current day to the config
-        DayConfig.COMMON.currentDay.set(currentDay);
+        DayConfig.CURRENT_DAY.set(currentDay);
         // Ensure you call the appropriate method to save the configuration to a file
         // For Forge, saving to file might need different handling
         // Example (check if this fits your config system):
         try {
-            DayConfig.DAY_SPEC.save(); // This may need to be replaced with actual save logic
+            DayConfig.COMMON_SPEC.save(); // This may need to be replaced with actual save logic
         } catch (Exception e) {
             e.printStackTrace();
         }

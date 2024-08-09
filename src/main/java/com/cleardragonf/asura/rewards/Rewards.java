@@ -1,6 +1,7 @@
 package com.cleardragonf.asura.rewards;
 
 import com.cleardragonf.asura.HOB;
+import com.cleardragonf.asura.daycounter.config.DayConfig;
 import com.cleardragonf.asura.rewards.config.RewardsConfig;
 import com.cleardragonf.asura.hobpayments.api.HOBPaymentsAPI;
 import net.minecraft.network.chat.Component;
@@ -28,6 +29,7 @@ public class Rewards {
         LivingEntity entity = event.getEntity();
         DamageSource source = event.getSource();
 
+
         // Check if the source of the damage is a player
         if (source.getEntity() instanceof Player && !(entity instanceof Player)) {
             Player player = (Player) source.getEntity();
@@ -46,7 +48,11 @@ public class Rewards {
 
                 if (minValue != null && maxValue != null) {
                     // Generate random reward amount
-                    BigDecimal rewardAmount = RewardUtils.getRandomReward(minValue, maxValue);
+                    BigDecimal baseRewardAmount = RewardUtils.getRandomReward(minValue, maxValue);
+                    BigDecimal rewardAmount = BigDecimal.valueOf(DayConfig.CURRENT_DAY.get() * baseRewardAmount.intValue());
+                    if(rewardAmount.equals(0)){
+                        rewardAmount = BigDecimal.valueOf(DayConfig.CURRENT_DAY.get());
+                    }
 
                     // Reward the player
                     HOBPaymentsAPI.addBalance(player.getName().getString(), rewardAmount.doubleValue());
