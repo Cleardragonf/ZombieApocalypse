@@ -12,10 +12,13 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import static java.lang.Math.random;
 
 public class Spawning {
 
@@ -28,9 +31,10 @@ public class Spawning {
 
             // Get viable spawn locations around the player
             List<BlockPos> spawnLocations = selectLocation(player, world, entityType);
+            List<BlockPos> randomLocations = selectRandomLocations(spawnLocations, 5); // Change 5 to the desired number of locations
 
             // For each viable location, spawn an entity
-            for (BlockPos location : spawnLocations) {
+            for (BlockPos location : randomLocations) {
                 // Create the entity using selectEntity
                 Entity entity = selectEntity(entityType, world);
                 if (entity != null) {
@@ -41,11 +45,28 @@ public class Spawning {
         }
     }
 
+    public List<BlockPos> selectRandomLocations(List<BlockPos> locations, int count) {
+        List<BlockPos> selectedLocations = new ArrayList<>();
+
+        // If there are fewer locations than the requested count, return all locations
+        if (locations.size() <= count) {
+            return new ArrayList<>(locations);
+        }
+
+        // Shuffle and select a subset
+        List<BlockPos> shuffledLocations = new ArrayList<>(locations);
+        Collections.shuffle(shuffledLocations);
+        for (int i = 0; i < count; i++) {
+            selectedLocations.add(shuffledLocations.get(i));
+        }
+
+        return selectedLocations;
+    }
+
     // Selects viable spawn locations around a player
     public List<BlockPos> selectLocation(ServerPlayer player, ServerLevel world, EntityType<?> entityType) {
         List<BlockPos> viableLocations = new ArrayList<>();
         BlockPos playerPos = player.blockPosition();
-        Random random = new Random();
 
         // Define the radius for spawn selection
         int radius = 20;
