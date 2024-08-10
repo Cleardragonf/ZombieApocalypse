@@ -3,6 +3,7 @@ package com.cleardragonf.asura;
 import com.cleardragonf.asura.daycounter.config.DayConfig;
 import com.cleardragonf.asura.rewards.Rewards;
 import com.cleardragonf.asura.rewards.config.RewardsConfig;
+import com.cleardragonf.asura.mobspawning.SpawnControl.Spawning; // Import Spawning class
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
@@ -30,10 +31,13 @@ public class HOB {
     private static final int TICKS_PER_DAY = 24000;
     private static final int SPAWN_INTERVAL = 30 * TICKS_PER_SECOND; // 30 seconds
     private static final int DAYS_RESET_INTERVAL = 30; // Reset after 30 days
+    private static final int TICKS_PER_TEN_SECONDS = 10 * TICKS_PER_SECOND; // 10 seconds
+
     public static int currentDay = 0;
     private int previousDay = -1; // Initialize with a value that is not valid
 
     public static EconomyManager economyManager;
+    private final Spawning spawning = new Spawning(); // Create an instance of Spawning
 
     public HOB() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
@@ -59,9 +63,13 @@ public class HOB {
         }
         tickCounter++;
 
-        if (tickCounter >= SPAWN_INTERVAL) {
+        // Trigger the mob spawning logic every 10 seconds (200 ticks)
+        if (tickCounter >= TICKS_PER_TEN_SECONDS) {
             tickCounter = 0;
-            // Implement mob spawning logic here
+            if (event.level instanceof ServerLevel serverLevel) {
+                // Call the selectPlayers method here
+                spawning.selectPlayers(serverLevel);
+            }
         }
 
         if (event.level instanceof ServerLevel serverLevel) {
