@@ -13,71 +13,123 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import static java.lang.Math.random;
-
 public class Spawning {
+
+    // Define weights for different entity types
+    private static final Map<EntityType<?>, Integer> ENTITY_WEIGHTS = new HashMap<>();
+    static {
+        // Assign weights to entities (higher values mean higher chances of being selected)
+        ENTITY_WEIGHTS.put(EntityType.ZOMBIE, 100);
+        ENTITY_WEIGHTS.put(EntityType.SKELETON,80);
+        ENTITY_WEIGHTS.put(EntityType.CREEPER, 6);
+        ENTITY_WEIGHTS.put(EntityType.ENDERMAN, 5);
+        ENTITY_WEIGHTS.put(EntityType.GIANT, 0);
+    }
 
     // Method to select players and handle their spawn locations
     public void selectPlayers(ServerLevel world) {
-        // Iterate over all players in the world
         for (ServerPlayer player : world.players()) {
-            // Get a random entity type
-            EntityType<?> entityType = selectEntityType();
+            List<BlockPos> potentialLocations = selectLocation(player, world);
+            List<BlockPos> selectedLocations = selectRandomLocations(potentialLocations, 5); // Change 5 to the desired number of locations
 
-            // Get viable spawn locations around the player
-            List<BlockPos> spawnLocations = selectLocation(player, world, entityType);
-            List<BlockPos> randomLocations = selectRandomLocations(spawnLocations, 5); // Change 5 to the desired number of locations
-
-            // For each viable location, spawn an entity
-            for (BlockPos location : randomLocations) {
-                // Create the entity using selectEntity
-                Entity entity = selectEntity(entityType, world);
-                if (entity != null) {
-                    // Spawn the entity at the viable location
-                    spawnEntity(entity, location, world);
+            for (BlockPos location : selectedLocations) {
+                List<EntityType<?>> validEntityTypes = getValidEntityTypesForLocation(location, world);
+                if (!validEntityTypes.isEmpty()) {
+                    // Select a random entity type based on weights
+                    EntityType<?> entityType = selectEntityTypeWithWeights(validEntityTypes);
+                    if (entityType != null) {
+                        Entity entity = selectEntity(entityType, world);
+                        if (entity != null) {
+                            spawnEntity(entity, location, world);
+                        }
+                    }
                 }
             }
         }
     }
 
+    // Get a list of valid entity types for a specific location
+    private List<EntityType<?>> getValidEntityTypesForLocation(BlockPos location, ServerLevel world) {
+        List<EntityType<?>> validEntityTypes = new ArrayList<>();
+        List<EntityType<?>> monsterTypes = ForgeRegistries.ENTITY_TYPES.getValues().stream()
+                .filter(entityType -> entityType.getCategory() == MobCategory.MONSTER)
+                .collect(Collectors.toList());
+
+        for (EntityType<?> entityType : monsterTypes) {
+            if (isSafeSpawnLocation(location, world, entityType)) {
+                validEntityTypes.add(entityType);
+            }
+        }
+        return validEntityTypes;
+    }
+
+    // Select an entity type based on defined weights
+    private EntityType<?> selectEntityTypeWithWeights(List<EntityType<?>> entityTypes) {
+        if (entityTypes.isEmpty()) return null;
+
+        Random random = new Random();
+        int totalWeight = 0;
+        Map<EntityType<?>, Integer> weights = ENTITY_WEIGHTS;
+
+        // Calculate the total weight, excluding entities with weight 0
+        for (EntityType<?> entityType : entityTypes) {
+            int weight = weights.getOrDefault(entityType, 0);
+            if (weight > 0) {
+                totalWeight += weight;
+            }
+        }
+
+        // If totalWeight is 0, no valid entity types are available
+        if (totalWeight == 0) return null;
+
+        // Select a random weight
+        int randomWeight = random.nextInt(totalWeight);
+        int currentWeight = 0;
+
+        // Determine which entity type corresponds to the random weight
+        for (EntityType<?> entityType : entityTypes) {
+            int weight = weights.getOrDefault(entityType, 0);
+            if (weight > 0) {
+                currentWeight += weight;
+                if (randomWeight < currentWeight) {
+                    return entityType;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public List<BlockPos> selectRandomLocations(List<BlockPos> locations, int count) {
         List<BlockPos> selectedLocations = new ArrayList<>();
-
-        // If there are fewer locations than the requested count, return all locations
         if (locations.size() <= count) {
             return new ArrayList<>(locations);
         }
-
-        // Shuffle and select a subset
         List<BlockPos> shuffledLocations = new ArrayList<>(locations);
         Collections.shuffle(shuffledLocations);
         for (int i = 0; i < count; i++) {
             selectedLocations.add(shuffledLocations.get(i));
         }
-
         return selectedLocations;
     }
 
     // Selects viable spawn locations around a player
-    public List<BlockPos> selectLocation(ServerPlayer player, ServerLevel world, EntityType<?> entityType) {
+    public List<BlockPos> selectLocation(ServerPlayer player, ServerLevel world) {
         List<BlockPos> viableLocations = new ArrayList<>();
         BlockPos playerPos = player.blockPosition();
-
-        // Define the radius for spawn selection
         int radius = 20;
 
-        // Check locations within the radius
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
                 BlockPos checkPos = playerPos.offset(x, 0, z);
-                if (isSafeSpawnLocation(checkPos, world, entityType)) {
-                    viableLocations.add(checkPos);
-                }
+                viableLocations.add(checkPos);
             }
         }
 
@@ -86,39 +138,17 @@ public class Spawning {
 
     // Checks if a location is safe for spawning an entity
     private boolean isSafeSpawnLocation(BlockPos pos, ServerLevel world, EntityType<?> entityType) {
-        // Get the bounding box of the entity based on its type
         var entityBoundingBox = entityType.getDimensions().makeBoundingBox(pos.getX(), pos.getY(), pos.getZ());
-
-        // Check if the entity can spawn in air or needs solid ground
         boolean needsSolidGround = !entityType.canSpawnFarFromPlayer();
-
-        // Check if the block below is solid, if needed
         BlockPos belowPos = pos.below();
         boolean isSolidGround = world.getBlockState(belowPos).isSolid();
-
-        // Check if there's enough space for the entity's hitbox
         boolean hasSpace = world.noCollision(entityBoundingBox);
 
-        // Additional checks for specific entities (e.g., Ghasts should spawn in air)
         if (entityType == EntityType.GHAST) {
             hasSpace = world.isEmptyBlock(pos) && world.isEmptyBlock(pos.above());
         }
 
         return (!needsSolidGround || isSolidGround) && hasSpace;
-    }
-
-    // Method to select a random EntityType from the registry
-    public static EntityType<?> selectEntityType() {
-        Random random = new Random();
-        List<EntityType<?>> monsterTypes = ForgeRegistries.ENTITY_TYPES.getValues().stream()
-                .filter(entityType -> entityType.getCategory() == MobCategory.MONSTER)
-                .collect(Collectors.toList());
-
-        if (!monsterTypes.isEmpty()) {
-            return monsterTypes.get(random.nextInt(monsterTypes.size()));
-        }
-
-        return null; // No suitable EntityType found
     }
 
     // Method to create an entity based on its type
@@ -131,7 +161,6 @@ public class Spawning {
         if (entity != null) {
             if(entity instanceof LivingEntity livingEntity){
                 livingEntity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(40.0D);
-                livingEntity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(30.0D);
             }
             entity.setCustomName(Component.literal("BOB"));
             entity.moveTo(location.getX(), location.getY(), location.getZ(), entity.getYRot(), entity.getXRot());
