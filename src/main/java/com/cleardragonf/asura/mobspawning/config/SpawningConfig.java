@@ -40,13 +40,13 @@ public class SpawningConfig {
                 .filter(entityType -> entityType.getCategory() == MobCategory.MONSTER)
                 .forEach(entityType -> {
                     String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString(); // e.g., "minecraft:blaze"
-                    int defaultWeight = 10; // Example default value
+                    int defaultWeight = 0; // Example default value
                     int defaultHealth = 20; // Example default value
 
                     // Directly define the entity configurations at the root level
                     ForgeConfigSpec.IntValue entityWeight = BUILDER
                             .comment("Spawn weight for " + entityName)
-                            .defineInRange(entityName + ".entityweight", defaultWeight, 1, Integer.MAX_VALUE);
+                            .defineInRange(entityName + ".entityweight", defaultWeight, 0, Integer.MAX_VALUE);
 
                     ForgeConfigSpec.IntValue customHealth = BUILDER
                             .comment("Custom health for " + entityName)

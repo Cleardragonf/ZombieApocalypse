@@ -57,6 +57,12 @@ public class Spawning {
                 .filter(entityType -> entityType.getCategory() == MobCategory.MONSTER)
                 .collect(Collectors.toList());
 
+        // Filter out entities with a weight of 0
+        Map<EntityType<?>, Integer> weights = config.getEntityWeights();
+        monsterTypes = monsterTypes.stream()
+                .filter(entityType -> weights.getOrDefault(entityType, 0) > 1)
+                .collect(Collectors.toList());
+
         for (EntityType<?> entityType : monsterTypes) {
             System.out.println("Checking to see if the area is safe for: " + entityType);
 
