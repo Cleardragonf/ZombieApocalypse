@@ -39,7 +39,6 @@ public class Spawning {
                 if (!validEntityTypes.isEmpty()) {
                     // Select a random entity type based on weights
                     EntityType<?> entityType = selectEntityTypeWithWeights(validEntityTypes);
-                    System.out.println(entityType);
                     if (entityType != null) {
                         Entity entity = selectEntity(entityType, world);
                         if (entity != null) {
@@ -59,11 +58,39 @@ public class Spawning {
                 .collect(Collectors.toList());
 
         for (EntityType<?> entityType : monsterTypes) {
+            System.out.println("Checking to see if the area is safe for: " + entityType);
+
+            // Check the original location
             if (isSafeSpawnLocation(location, world, entityType)) {
                 validEntityTypes.add(entityType);
+                System.out.println("The area is safe for: " + entityType);
+            } else {
+                // Try to find a nearby safe location
+                BlockPos safeLocation = findNearbySafeLocation(location, world, entityType);
+                if (safeLocation != null) {
+                    validEntityTypes.add(entityType);
+                    System.out.println("Found a nearby safe location for: " + entityType + " at " + safeLocation);
+                } else {
+                    System.out.println("No safe location found for: " + entityType);
+                }
             }
         }
         return validEntityTypes;
+    }
+
+    private BlockPos findNearbySafeLocation(BlockPos origin, ServerLevel world, EntityType<?> entityType) {
+        int searchRadius = 10; // Define the radius within which to search for a safe location
+        for (int dx = -searchRadius; dx <= searchRadius; dx++) {
+            for (int dy = -searchRadius; dy <= searchRadius; dy++) {
+                for (int dz = -searchRadius; dz <= searchRadius; dz++) {
+                    BlockPos checkPos = origin.offset(dx, dy, dz);
+                    if (isSafeSpawnLocation(checkPos, world, entityType)) {
+                        return checkPos; // Return the first safe location found
+                    }
+                }
+            }
+        }
+        return null; // Return null if no safe location is found within the search radius
     }
 
     // Select an entity type based on defined weights
@@ -74,15 +101,19 @@ public class Spawning {
         int totalWeight = 0;
         Map<EntityType<?>, Integer> weights = config.getEntityWeights();
 
-        // Calculate the total weight, excluding entities with weight 0
+        // Debug: Print the weights of entities
+        System.out.println("Entity Weights:");
         for (EntityType<?> entityType : entityTypes) {
             int weight = weights.getOrDefault(entityType, 0);
+            System.out.println(entityType + ": " + weight);
             if (weight > 0) {
                 totalWeight += weight;
             }
         }
 
-        // If totalWeight is 0, no valid entity types are available
+        // Debug: Print total weight
+        System.out.println("Total Weight: " + totalWeight);
+
         if (totalWeight == 0) return null;
 
         // Select a random weight
@@ -95,12 +126,13 @@ public class Spawning {
             if (weight > 0) {
                 currentWeight += weight;
                 if (randomWeight < currentWeight) {
+                    System.out.println("Selected Entity Type: " + entityType);
                     return entityType;
                 }
             }
         }
 
-        return null;
+        return null; // Fallback in case something goes wrong
     }
 
     public List<BlockPos> selectRandomLocations(List<BlockPos> locations, int count) {
