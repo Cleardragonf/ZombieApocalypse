@@ -1,14 +1,18 @@
 package com.cleardragonf.asura;
 
+import com.cleardragonf.asura.GeneralConfig;
+import com.cleardragonf.asura.ZombieAIInjector;
 import com.cleardragonf.asura.daycounter.config.DayConfig;
+import com.cleardragonf.asura.hobpayments.commands.EconomyCommands;
+import com.cleardragonf.asura.hobpayments.economy.EconomyManager;
+import com.cleardragonf.asura.mobspawning.config.SpawningConfig;
+import com.cleardragonf.asura.mobspawning.SpawnControl.Spawning;
 import com.cleardragonf.asura.rewards.Rewards;
 import com.cleardragonf.asura.rewards.config.RewardsConfig;
-import com.cleardragonf.asura.mobspawning.SpawnControl.Spawning; // Import Spawning class
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.Zombie;
-import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -19,9 +23,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+
 import static com.cleardragonf.asura.hobpayments.config.ModConfig.COMMON_SPEC;
-import com.cleardragonf.asura.hobpayments.economy.EconomyManager;
-import com.cleardragonf.asura.hobpayments.commands.EconomyCommands;
 
 @Mod(HOB.MODID)
 public class HOB {
@@ -37,7 +40,7 @@ public class HOB {
     private int previousDay = -1; // Initialize with a value that is not valid
 
     public static EconomyManager economyManager;
-    private final Spawning spawning = new Spawning(); // Create an instance of Spawning
+    private final Spawning spawning; // Create an instance of Spawning
 
     public HOB() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
@@ -48,12 +51,17 @@ public class HOB {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, GeneralConfig.SPEC, "HOB/General.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RewardsConfig.SPEC, "HOB/Rewards.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, DayConfig.COMMON_SPEC, "HOB/DayTracking.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, SpawningConfig.CONFIG, "HOB/Spawning.toml");
 
         MinecraftForge.EVENT_BUS.register(Rewards.class);
+
+        // Create SpawningConfig object
+        SpawningConfig spawningConfig = new SpawningConfig();
+        this.spawning = new Spawning(spawningConfig); // Ensure Spawning constructor matches
     }
 
     private void setup(final FMLCommonSetupEvent event) {
-        // Perform any necessary setup here, server-side only
+        // Perform any necessary setup here
     }
 
     @SubscribeEvent
@@ -63,7 +71,7 @@ public class HOB {
         }
         tickCounter++;
 
-        // Trigger the mob spawning logic every 10 seconds (200 ticks)
+        // Trigger mob spawning logic every 10 seconds (200 ticks)
         if (tickCounter >= TICKS_PER_TEN_SECONDS) {
             tickCounter = 0;
             if (event.level instanceof ServerLevel serverLevel) {
@@ -73,7 +81,7 @@ public class HOB {
         }
 
         if (event.level instanceof ServerLevel serverLevel) {
-            // Update the current day based on the world time
+            // Update current day based on world time
             currentDay = (int) (serverLevel.getDayTime() / TICKS_PER_DAY);
 
             // Check if the day has changed
@@ -99,7 +107,7 @@ public class HOB {
     }
 
     private void onDay30() {
-        // Handle the day 30 events here
+        // Handle day 30 events here
     }
 
     @SubscribeEvent
@@ -125,10 +133,9 @@ public class HOB {
         // Save the current day to the config
         DayConfig.CURRENT_DAY.set(currentDay);
         // Ensure you call the appropriate method to save the configuration to a file
-        // For Forge, saving to file might need different handling
-        // Example (check if this fits your config system):
         try {
-            DayConfig.COMMON_SPEC.save(); // This may need to be replaced with actual save logic
+            // Update with the correct save logic
+            DayConfig.COMMON_SPEC.save();
         } catch (Exception e) {
             e.printStackTrace();
         }

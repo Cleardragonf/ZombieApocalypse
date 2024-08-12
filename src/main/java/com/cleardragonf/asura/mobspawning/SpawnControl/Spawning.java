@@ -1,5 +1,6 @@
 package com.cleardragonf.asura.mobspawning.SpawnControl;
 
+import com.cleardragonf.asura.mobspawning.config.SpawningConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -8,7 +9,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -22,15 +22,10 @@ import java.util.stream.Collectors;
 
 public class Spawning {
 
-    // Define weights for different entity types
-    private static final Map<EntityType<?>, Integer> ENTITY_WEIGHTS = new HashMap<>();
-    static {
-        // Assign weights to entities (higher values mean higher chances of being selected)
-        ENTITY_WEIGHTS.put(EntityType.ZOMBIE, 100);
-        ENTITY_WEIGHTS.put(EntityType.SKELETON,80);
-        ENTITY_WEIGHTS.put(EntityType.CREEPER, 6);
-        ENTITY_WEIGHTS.put(EntityType.ENDERMAN, 5);
-        ENTITY_WEIGHTS.put(EntityType.GIANT, 0);
+    private final SpawningConfig config;
+
+    public Spawning(SpawningConfig config) {
+        this.config = config; // Initialize with the provided configuration
     }
 
     // Method to select players and handle their spawn locations
@@ -44,6 +39,7 @@ public class Spawning {
                 if (!validEntityTypes.isEmpty()) {
                     // Select a random entity type based on weights
                     EntityType<?> entityType = selectEntityTypeWithWeights(validEntityTypes);
+                    System.out.println(entityType);
                     if (entityType != null) {
                         Entity entity = selectEntity(entityType, world);
                         if (entity != null) {
@@ -76,7 +72,7 @@ public class Spawning {
 
         Random random = new Random();
         int totalWeight = 0;
-        Map<EntityType<?>, Integer> weights = ENTITY_WEIGHTS;
+        Map<EntityType<?>, Integer> weights = config.getEntityWeights();
 
         // Calculate the total weight, excluding entities with weight 0
         for (EntityType<?> entityType : entityTypes) {
@@ -124,7 +120,7 @@ public class Spawning {
     public List<BlockPos> selectLocation(ServerPlayer player, ServerLevel world) {
         List<BlockPos> viableLocations = new ArrayList<>();
         BlockPos playerPos = player.blockPosition();
-        int radius = 20;
+        int radius = SpawningConfig.getSpawnRadius(); // Use radius from config
 
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
@@ -156,15 +152,9 @@ public class Spawning {
         return entityType.create(world);
     }
 
-    // Method to spawn an entity at a specific location
-    public void spawnEntity(Entity entity, BlockPos location, ServerLevel world) {
-        if (entity != null) {
-            if(entity instanceof LivingEntity livingEntity){
-                livingEntity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(40.0D);
-            }
-            entity.setCustomName(Component.literal("BOB"));
-            entity.moveTo(location.getX(), location.getY(), location.getZ(), entity.getYRot(), entity.getXRot());
-            world.addFreshEntity(entity);
-        }
+    // Method to spawn an entity in the world
+    private void spawnEntity(Entity entity, BlockPos location, ServerLevel world) {
+        entity.moveTo(location.getX() + 0.5, location.getY(), location.getZ() + 0.5, 0, 0);
+        world.addFreshEntity(entity);
     }
 }
