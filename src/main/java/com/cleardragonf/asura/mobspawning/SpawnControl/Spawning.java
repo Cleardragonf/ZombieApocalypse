@@ -10,6 +10,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Collections;
@@ -194,7 +196,26 @@ public class Spawning {
     private void spawnEntity(Entity entity, BlockPos location, ServerLevel world) {
         if(entity != null){
             LivingEntity livingEntity = (LivingEntity) entity;
-            livingEntity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(Double.valueOf(SpawningConfig.getEntityHealths(entity.getType())));
+            if(SpawningConfig.getEntityHealths(entity.getType()) != 0.0){
+                livingEntity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(SpawningConfig.getEntityHealths(entity.getType()));
+            }
+            if(SpawningConfig.getEntitiesAttackDamage(entity.getType()) != 0.0){
+                livingEntity.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(SpawningConfig.getEntitiesAttackDamage(entity.getType()));
+            }
+            if(SpawningConfig.getMovementSpeed(entity.getType()) != 0.0){
+                livingEntity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(SpawningConfig.getMovementSpeed(entity.getType()));
+            }
+            if(SpawningConfig.getAttackSpeed(entity.getType()) != 0.0){
+                livingEntity.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(SpawningConfig.getAttackSpeed(entity.getType()));
+            }
+            if(SpawningConfig.getEntitysArmour(entity.getType()) != 0.0){
+                livingEntity.getAttribute(Attributes.ARMOR).setBaseValue(SpawningConfig.getEntitysArmour(entity.getType()));
+            }
+            if(SpawningConfig.getEntitysJump(entity.getType()) != 0.0){
+                livingEntity.getAttribute(Attributes.JUMP_STRENGTH).setBaseValue(SpawningConfig.getEntitysJump(entity.getType()));
+            }
+            if(entity instanceof Creeper){
+            }
         }
         entity.moveTo(location.getX() + 0.5, location.getY(), location.getZ() + 0.5, 0, 0);
         world.addFreshEntity(entity);

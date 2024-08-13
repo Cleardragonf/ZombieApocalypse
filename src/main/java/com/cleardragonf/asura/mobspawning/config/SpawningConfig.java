@@ -47,19 +47,45 @@ public class SpawningConfig {
                 .forEach(entityType -> {
                     String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString(); // e.g., "minecraft:blaze"
                     int defaultWeight = 0; // Example default value
-                    int defaultHealth = 20; // Example default value
-                    int defaultrestPeriod = 1;
+                    double defaultHealth = 20.0; // Example default value
+                    double defaultAttackDamage = 2.0;
+                    double defaultSpeed = 0.7;
+                    double defaultAttackSpeed = 4.0;
+                    double defaultArmour = 0.0;
+                    double defaultJump = 0.7;
 
                     // Directly define the entity configurations at the root level
                     ForgeConfigSpec.IntValue entityWeight = BUILDER
                             .comment("Spawn weight for " + entityName)
                             .defineInRange(entityName + ".entityweight", defaultWeight, 0, Integer.MAX_VALUE);
 
-                    ForgeConfigSpec.IntValue customHealth = BUILDER
+                    ForgeConfigSpec.DoubleValue customHealth = BUILDER
                             .comment("Custom health for " + entityName)
-                            .defineInRange(entityName + ".customhealth", defaultHealth, 1, Integer.MAX_VALUE);
+                            .defineInRange(entityName + ".customhealth", defaultHealth, 0, Double.MAX_VALUE);
 
-                    ENTITY_CONFIGS.put(entityName, new EntityConfig(entityWeight, customHealth));
+                    ForgeConfigSpec.DoubleValue attackDamage = BUILDER
+                            .comment("Custom Attack Damage for " + entityName)
+                            .defineInRange(entityName + ".attackDamage", defaultAttackDamage, 0, Double.MAX_VALUE);
+
+                    ForgeConfigSpec.DoubleValue movementSpeed = BUILDER
+                            .comment("Custom Attack Damage for " + entityName)
+                            .defineInRange(entityName + ".movementSpeed", defaultSpeed, 0, Double.MAX_VALUE);
+
+                    ForgeConfigSpec.DoubleValue attackSpeed = BUILDER
+                            .comment("Custom Attack Speed for " + entityName)
+                            .defineInRange(entityName + ".attackSpeed", defaultAttackSpeed, 0, Double.MAX_VALUE);
+
+                    ForgeConfigSpec.DoubleValue armour = BUILDER
+                            .comment("Custom Armour for " + entityName)
+                            .defineInRange(entityName + ".armour", defaultArmour, 0, Double.MAX_VALUE);
+
+                    ForgeConfigSpec.DoubleValue entityJump = BUILDER
+                            .comment("Custom Jump Height for " + entityName)
+                            .defineInRange(entityName + ".entityJump", defaultJump, 0, Double.MAX_VALUE);
+
+
+
+                    ENTITY_CONFIGS.put(entityName, new EntityConfig(entityWeight, customHealth, attackSpeed, attackDamage, movementSpeed, armour, entityJump));
                 });
 
         CONFIG = BUILDER.build();
@@ -67,11 +93,23 @@ public class SpawningConfig {
 
     public static class EntityConfig {
         public final ForgeConfigSpec.IntValue entityWeight;
-        public final ForgeConfigSpec.IntValue customHealth;
+        public final ForgeConfigSpec.DoubleValue customHealth;
+        public final ForgeConfigSpec.DoubleValue attackDamage;
+        public final ForgeConfigSpec.DoubleValue movementSpeed;
+        public final ForgeConfigSpec.DoubleValue attackSpeed;
+        public final ForgeConfigSpec.DoubleValue armour;
+        public final ForgeConfigSpec.DoubleValue entityJump;
 
-        public EntityConfig(ForgeConfigSpec.IntValue entityWeight, ForgeConfigSpec.IntValue customHealth) {
+        public EntityConfig(ForgeConfigSpec.IntValue entityWeight, ForgeConfigSpec.DoubleValue customHealth, ForgeConfigSpec.DoubleValue attackDamage,
+                            ForgeConfigSpec.DoubleValue movementSpeed, ForgeConfigSpec.DoubleValue attackSpeed, ForgeConfigSpec.DoubleValue armour,
+                            ForgeConfigSpec.DoubleValue entityJump) {
             this.entityWeight = entityWeight;
             this.customHealth = customHealth;
+            this.attackDamage = attackDamage;
+            this.movementSpeed = movementSpeed;
+            this.attackSpeed = attackSpeed;
+            this.armour = armour;
+            this.entityJump = entityJump;
         }
     }
 
@@ -86,11 +124,44 @@ public class SpawningConfig {
         return weights;
     }
 
-    public static int getEntityHealths(EntityType<?> entityType) {
+    public static double getEntityHealths(EntityType<?> entityType) {
         String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString();
         EntityConfig config = ENTITY_CONFIGS.get(entityName);
-        return config != null ? config.customHealth.get() : 20; // Default health if not found in the config
+        return config != null ? config.customHealth.get() : 20.0; // Default health if not found in the config
     }
+
+    public static double getEntitiesAttackDamage(EntityType<?> entityType) {
+        String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString();
+        EntityConfig config = ENTITY_CONFIGS.get(entityName);
+        return config != null ? config.attackDamage.get() : 2.0; // Default health if not found in the config
+    }
+
+    public static double getMovementSpeed(EntityType<?> entityType){
+        String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString();
+        EntityConfig config = ENTITY_CONFIGS.get(entityName);
+        return config != null ? config.movementSpeed.get() : 0.7; // Default health if not found in the config
+    }
+
+    public static double getAttackSpeed(EntityType<?> entityType) {
+        String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString();
+        EntityConfig config = ENTITY_CONFIGS.get(entityName);
+        return config != null ? config.attackSpeed.get() : 4.0; // Default health if not found in the config
+    }
+
+    public static double getEntitysArmour(EntityType<?> entityType) {
+        String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString();
+        EntityConfig config = ENTITY_CONFIGS.get(entityName);
+        return config != null ? config.armour.get() : 0.0; // Default health if not found in the config
+    }
+
+
+    public static double getEntitysJump(EntityType<?> entityType) {
+        String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString();
+        EntityConfig config = ENTITY_CONFIGS.get(entityName);
+        return config != null ? config.entityJump.get() : 0.7; // Default health if not found in the config
+    }
+
+
 
     public static int getRestPeriod() {return restPeriod.get();}
 
