@@ -32,7 +32,7 @@ public class Spawning {
     public void selectPlayers(ServerLevel world) {
         for (ServerPlayer player : world.players()) {
             List<BlockPos> potentialLocations = selectLocation(player, world);
-            List<BlockPos> selectedLocations = selectRandomLocations(potentialLocations, 5); // Change 5 to the desired number of locations
+            List<BlockPos> selectedLocations = selectRandomLocations(potentialLocations, SpawningConfig.getMaxSpawnAttempts()); // Change 5 to the desired number of locations
 
             for (BlockPos location : selectedLocations) {
                 List<EntityType<?>> validEntityTypes = getValidEntityTypesForLocation(location, world);
@@ -192,6 +192,10 @@ public class Spawning {
 
     // Method to spawn an entity in the world
     private void spawnEntity(Entity entity, BlockPos location, ServerLevel world) {
+        if(entity != null){
+            LivingEntity livingEntity = (LivingEntity) entity;
+            livingEntity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(Double.valueOf(SpawningConfig.getEntityHealths(entity.getType())));
+        }
         entity.moveTo(location.getX() + 0.5, location.getY(), location.getZ() + 0.5, 0, 0);
         world.addFreshEntity(entity);
     }

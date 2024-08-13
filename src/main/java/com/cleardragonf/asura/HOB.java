@@ -32,7 +32,7 @@ public class HOB {
     private int tickCounter = 0;
     private static final int TICKS_PER_SECOND = 20;
     private static final int TICKS_PER_DAY = 24000;
-    private static final int SPAWN_INTERVAL = 30 * TICKS_PER_SECOND; // 30 seconds
+    private static int SPAWN_INTERVAL; // 30 seconds
     private static final int DAYS_RESET_INTERVAL = 30; // Reset after 30 days
     private static final int TICKS_PER_TEN_SECONDS = 10 * TICKS_PER_SECOND; // 10 seconds
 
@@ -58,10 +58,12 @@ public class HOB {
         // Create SpawningConfig object
         SpawningConfig spawningConfig = new SpawningConfig();
         this.spawning = new Spawning(spawningConfig); // Ensure Spawning constructor matches
+
     }
 
     private void setup(final FMLCommonSetupEvent event) {
         // Perform any necessary setup here
+        SPAWN_INTERVAL = SpawningConfig.getRestPeriod() * TICKS_PER_SECOND;
     }
 
     @SubscribeEvent
@@ -72,7 +74,7 @@ public class HOB {
         tickCounter++;
 
         // Trigger mob spawning logic every 10 seconds (200 ticks)
-        if (tickCounter >= TICKS_PER_TEN_SECONDS) {
+        if (tickCounter >= SPAWN_INTERVAL) {
             tickCounter = 0;
             if (event.level instanceof ServerLevel serverLevel) {
                 // Call the selectPlayers method here

@@ -16,6 +16,7 @@ public class SpawningConfig {
 
     public static ForgeConfigSpec.IntValue spawnRadius;
     public static ForgeConfigSpec.IntValue maxSpawnAttempts;
+    public static ForgeConfigSpec.IntValue restPeriod;
 
     // Map to store entity configurations
     public static final Map<String, EntityConfig> ENTITY_CONFIGS = new HashMap<>();
@@ -32,6 +33,11 @@ public class SpawningConfig {
                 .comment("Max spawn attempts")
                 .defineInRange("max_spawn_attempts", 5, 1, Integer.MAX_VALUE);
 
+        restPeriod = BUILDER
+                .comment("Amount of time in Seconds Between Spawning Waves")
+                .defineInRange("wave_rest_period", 5, 1, Integer.MAX_VALUE);
+
+
         BUILDER.pop();
 
         // No push for entity configurations, defining them directly under the entity keys
@@ -42,6 +48,7 @@ public class SpawningConfig {
                     String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString(); // e.g., "minecraft:blaze"
                     int defaultWeight = 0; // Example default value
                     int defaultHealth = 20; // Example default value
+                    int defaultrestPeriod = 1;
 
                     // Directly define the entity configurations at the root level
                     ForgeConfigSpec.IntValue entityWeight = BUILDER
@@ -79,16 +86,13 @@ public class SpawningConfig {
         return weights;
     }
 
-    public static Map<EntityType<?>, Integer> getEntityHealths() {
-        Map<EntityType<?>, Integer> healths = new HashMap<>();
-        for (Map.Entry<String, EntityConfig> entry : ENTITY_CONFIGS.entrySet()) {
-            EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(entry.getKey()));
-            if (entityType != null) {
-                healths.put(entityType, entry.getValue().customHealth.get());
-            }
-        }
-        return healths;
+    public static int getEntityHealths(EntityType<?> entityType) {
+        String entityName = ForgeRegistries.ENTITY_TYPES.getKey(entityType).toString();
+        EntityConfig config = ENTITY_CONFIGS.get(entityName);
+        return config != null ? config.customHealth.get() : 20; // Default health if not found in the config
     }
+
+    public static int getRestPeriod() {return restPeriod.get();}
 
     public static int getSpawnRadius() {
         return spawnRadius.get();
