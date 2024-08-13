@@ -9,11 +9,13 @@ import com.cleardragonf.asura.mobspawning.config.SpawningConfig;
 import com.cleardragonf.asura.mobspawning.SpawnControl.Spawning;
 import com.cleardragonf.asura.rewards.Rewards;
 import com.cleardragonf.asura.rewards.config.RewardsConfig;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -40,6 +42,7 @@ public class HOB {
     private static final int DAYS_RESET_INTERVAL = 30; // Reset after 30 days
     private static final int TICKS_PER_TEN_SECONDS = 10 * TICKS_PER_SECOND; // 10 seconds
     public static final List<Entity> HOBSpawned = new ArrayList<>();
+    public static final List<BlockPos> HOBPlaced = new ArrayList<>();
 
 
     public static int currentDay = 0;
@@ -104,6 +107,7 @@ public class HOB {
 
                 // Save the current day to the config
                 wipeEntitiesFromHOBSpawned();
+                removeBlocksFromGame(serverLevel);
                 System.out.println("Current Count:" + getHOBSpawned().size());
                 saveConfig();
             }
@@ -168,5 +172,16 @@ public class HOB {
 
     public static List<Entity> getHOBSpawned(){
         return HOBSpawned;
+    }
+
+    public static void addBlockToHOBPlaced(BlockPos pos){
+        HOBPlaced.add(pos);
+    }
+
+    public static void removeBlocksFromGame(ServerLevel level){
+        for(BlockPos pos : HOBPlaced){
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+        }
+        HOBPlaced.clear();
     }
 }

@@ -170,13 +170,16 @@ public class ZombieBreakAndBuildGoal extends Goal {
         } else {
             if (world.getBlockState(blockPosInFrontBelow).isAir()) {
                 world.setBlock(blockPosInFrontBelow, Blocks.DIRT.defaultBlockState(), 3);
+                HOB.addBlockToHOBPlaced(blockPosInFrontBelow);
                 this.zombie.getNavigation().stop();
                 this.zombie.getNavigation().moveTo(blockPosInFrontBelow.getX(), blockPosInFrontBelow.getY(), blockPosInFrontBelow.getZ(), this.speed);
             } else {
                 if (world.getBlockState(blockPosSide1).isAir()) {
                     world.setBlock(blockPosSide1, Blocks.DIRT.defaultBlockState(), 3);
+                    HOB.addBlockToHOBPlaced(blockPosSide1);
                 } else if (world.getBlockState(blockPosSide2).isAir()) {
                     world.setBlock(blockPosSide2, Blocks.DIRT.defaultBlockState(), 3);
+                    HOB.addBlockToHOBPlaced(blockPosSide2);
                 }
             }
         }
@@ -210,6 +213,7 @@ public class ZombieBreakAndBuildGoal extends Goal {
                 BlockPos blockBelow = zombiePos;
                 if (world.getBlockState(blockBelow).isAir()) {
                     world.setBlock(blockBelow, Blocks.DIRT.defaultBlockState(), 3);
+                    HOB.addBlockToHOBPlaced(blockBelow);
                     isJumping = false;
                     jumpTicks = 0;
                 }
