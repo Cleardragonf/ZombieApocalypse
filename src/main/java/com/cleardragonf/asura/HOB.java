@@ -10,6 +10,7 @@ import com.cleardragonf.asura.mobspawning.SpawnControl.Spawning;
 import com.cleardragonf.asura.rewards.Rewards;
 import com.cleardragonf.asura.rewards.config.RewardsConfig;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.monster.Zombie;
@@ -24,6 +25,9 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.cleardragonf.asura.hobpayments.config.ModConfig.COMMON_SPEC;
 
 @Mod(HOB.MODID)
@@ -35,6 +39,8 @@ public class HOB {
     private static int SPAWN_INTERVAL; // 30 seconds
     private static final int DAYS_RESET_INTERVAL = 30; // Reset after 30 days
     private static final int TICKS_PER_TEN_SECONDS = 10 * TICKS_PER_SECOND; // 10 seconds
+    public static final List<Entity> HOBSpawned = new ArrayList<>();
+
 
     public static int currentDay = 0;
     private int previousDay = -1; // Initialize with a value that is not valid
@@ -97,6 +103,8 @@ public class HOB {
                 }
 
                 // Save the current day to the config
+                wipeEntitiesFromHOBSpawned();
+                System.out.println("Current Count:" + getHOBSpawned().size());
                 saveConfig();
             }
         }
@@ -141,5 +149,24 @@ public class HOB {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void addEntityToHOBSpawned(Entity entity){
+        HOBSpawned.add(entity);
+    }
+
+    public static void killEntityFromHOBSpawned(Entity entity){
+        HOBSpawned.remove(entity);
+    }
+
+    public static void wipeEntitiesFromHOBSpawned(){
+        for(Entity entity : HOBSpawned){
+            entity.kill();
+        }
+        HOBSpawned.clear();
+    }
+
+    public static List<Entity> getHOBSpawned(){
+        return HOBSpawned;
     }
 }

@@ -1,5 +1,6 @@
 package com.cleardragonf.asura.mobspawning.SpawnControl;
 
+import com.cleardragonf.asura.HOB;
 import com.cleardragonf.asura.mobspawning.config.SpawningConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -205,19 +206,18 @@ public class Spawning {
             if(SpawningConfig.getMovementSpeed(entity.getType()) != 0.0){
                 livingEntity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(SpawningConfig.getMovementSpeed(entity.getType()));
             }
-            if(SpawningConfig.getAttackSpeed(entity.getType()) != 0.0){
+            if(SpawningConfig.getAttackSpeed(entity.getType()) != 0.0 && livingEntity.getAttribute(Attributes.ATTACK_SPEED) != null){
                 livingEntity.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(SpawningConfig.getAttackSpeed(entity.getType()));
             }
-            if(SpawningConfig.getEntitysArmour(entity.getType()) != 0.0){
+            if(SpawningConfig.getEntitysArmour(entity.getType()) != 0.0 && livingEntity.getAttribute(Attributes.ARMOR) != null){
                 livingEntity.getAttribute(Attributes.ARMOR).setBaseValue(SpawningConfig.getEntitysArmour(entity.getType()));
             }
-            if(SpawningConfig.getEntitysJump(entity.getType()) != 0.0){
+            if(SpawningConfig.getEntitysJump(entity.getType()) != 0.0  && livingEntity.getAttribute(Attributes.JUMP_STRENGTH) != null){
                 livingEntity.getAttribute(Attributes.JUMP_STRENGTH).setBaseValue(SpawningConfig.getEntitysJump(entity.getType()));
-            }
-            if(entity instanceof Creeper){
             }
         }
         entity.moveTo(location.getX() + 0.5, location.getY(), location.getZ() + 0.5, 0, 0);
         world.addFreshEntity(entity);
+        HOB.addEntityToHOBSpawned(entity);
     }
 }

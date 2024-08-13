@@ -62,6 +62,7 @@ public class Rewards {
                     player.sendSystemMessage(Component.literal("You received " + formattedReward + " for killing a " + entityType + "!"));
                 }
             }
+            HOB.killEntityFromHOBSpawned(entity);
         }
 
         else if (source.getEntity() instanceof Player && entity instanceof Player) {
