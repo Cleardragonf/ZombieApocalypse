@@ -2,6 +2,7 @@ package com.cleardragonf.asura;
 
 import com.cleardragonf.asura.GeneralConfig;
 import com.cleardragonf.asura.ZombieAIInjector;
+import com.cleardragonf.asura.commands.HOBCommands;
 import com.cleardragonf.asura.daycounter.config.DayConfig;
 import com.cleardragonf.asura.hobpayments.commands.EconomyCommands;
 import com.cleardragonf.asura.hobpayments.economy.EconomyManager;
@@ -24,6 +25,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
@@ -56,6 +58,7 @@ public class HOB {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new ZombieAIInjector());
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
+        MinecraftForge.EVENT_BUS.addListener(this::onConfigChange);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, COMMON_SPEC, "HOB/balances.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, GeneralConfig.SPEC, "HOB/General.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RewardsConfig.SPEC, "HOB/Rewards.toml");
@@ -137,6 +140,7 @@ public class HOB {
         economyManager = new EconomyManager();
         // Register commands
         EconomyCommands.register(event.getServer().getCommands().getDispatcher());
+        HOBCommands.register(event.getServer().getCommands().getDispatcher());
 
         // Load the current day from the config
         currentDay = DayConfig.CURRENT_DAY.get();
