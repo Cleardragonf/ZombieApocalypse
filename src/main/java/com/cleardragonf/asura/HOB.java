@@ -59,7 +59,6 @@ public class HOB {
     public HOB() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         MinecraftForge.EVENT_BUS.register(this);
-//        MinecraftForge.EVENT_BUS.register(new ZombieAIInjector());
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
         MinecraftForge.EVENT_BUS.addListener(this::onEntityDeath);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, COMMON_SPEC, "HOB/balances.toml");
@@ -133,15 +132,6 @@ public class HOB {
 
     private void onDay30() {
         // Handle day 30 events here
-    }
-
-    @SubscribeEvent
-    public void onEntityJoinWorld(EntityJoinLevelEvent event) {
-//        if (event.getEntity().getType() == EntityType.ZOMBIE) {
-//            Zombie zombie = (Zombie) event.getEntity();
-//            zombie.goalSelector.addGoal(1, new ZombieBreakAndBuildGoal(zombie, 1.0));
-//            zombie.goalSelector.addGoal(1, new MeleeAttackGoal(zombie, 1.0D, true));
-//        }
     }
 
     public void onServerStarting(ServerStartingEvent event) {

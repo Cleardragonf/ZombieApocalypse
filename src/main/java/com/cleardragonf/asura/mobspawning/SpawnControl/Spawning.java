@@ -1,10 +1,9 @@
 package com.cleardragonf.asura.mobspawning.SpawnControl;
 
 import com.cleardragonf.asura.HOB;
-import com.cleardragonf.asura.ZombieBreakAndBuildGoal;
+import com.cleardragonf.asura.mobspawning.ai.ZombieBreakAndBuildGoal;
 import com.cleardragonf.asura.mobspawning.config.SpawningConfig;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -13,9 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Zombie;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Collections;
@@ -29,10 +26,17 @@ import java.util.stream.Collectors;
 public class Spawning {
 
     private final SpawningConfig config;
+    private int dailyIncrement;
+    private int day;
+    private double dailyIncrease;
 
     public Spawning(SpawningConfig config) {
         this.config = config; // Initialize with the provided configuration
+        dailyIncrement = HOB.currentDay / 7;
+        day = HOB.currentDay / 14;
+        dailyIncrease = HOB.currentDay / 30;
     }
+
 
     // Method to select players and handle their spawn locations
     public void selectPlayers(ServerLevel world) {
@@ -63,10 +67,20 @@ public class Spawning {
                 .filter(entityType -> entityType.getCategory() == MobCategory.MONSTER)
                 .collect(Collectors.toList());
 
-        // Filter out entities with a weight of 0
+        // Get the original weights from the configuration
         Map<EntityType<?>, Integer> weights = config.getEntityWeights();
+
+        // Increase the weight of each entity by the value of 'day'
+        Map<EntityType<?>, Integer> modifiedWeights = new HashMap<>();
+        for (EntityType<?> entityType : monsterTypes) {
+            int originalWeight = weights.getOrDefault(entityType, 0);
+            int modifiedWeight = originalWeight + day;
+            modifiedWeights.put(entityType, modifiedWeight);
+        }
+
+        // Filter out entities with a weight less than or equal to 1
         monsterTypes = monsterTypes.stream()
-                .filter(entityType -> weights.getOrDefault(entityType, 0) > 1)
+                .filter(entityType -> modifiedWeights.getOrDefault(entityType, 0) > 1)
                 .collect(Collectors.toList());
 
         for (EntityType<?> entityType : monsterTypes) {
@@ -91,7 +105,7 @@ public class Spawning {
     }
 
     private BlockPos findNearbySafeLocation(BlockPos origin, ServerLevel world, EntityType<?> entityType) {
-        int searchRadius = 10; // Define the radius within which to search for a safe location
+        int searchRadius = SpawningConfig.getSpawnRadius() * dailyIncrement; // Define the radius within which to search for a safe location
         for (int dx = -searchRadius; dx <= searchRadius; dx++) {
             for (int dy = -searchRadius; dy <= searchRadius; dy++) {
                 for (int dz = -searchRadius; dz <= searchRadius; dz++) {
@@ -216,29 +230,29 @@ public class Spawning {
         if(entity != null){
             LivingEntity livingEntity = (LivingEntity) entity;
             if(SpawningConfig.getEntityHealths(entity.getType()) != 0.0){
-                livingEntity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(SpawningConfig.getEntityHealths(entity.getType()));
+                livingEntity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(SpawningConfig.getEntityHealths(entity.getType()) * dailyIncrease);
             }
             if(SpawningConfig.getEntitiesAttackDamage(entity.getType()) != 0.0){
-                livingEntity.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(SpawningConfig.getEntitiesAttackDamage(entity.getType()));
+                livingEntity.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(SpawningConfig.getEntitiesAttackDamage(entity.getType()) *dailyIncrease);
             }
 //            if(SpawningConfig.getMovementSpeed(entity.getType()) != 0.0){
 //                livingEntity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(SpawningConfig.getMovementSpeed(entity.getType()));
 //            }
             if(SpawningConfig.getAttackSpeed(entity.getType()) != 0.0 && livingEntity.getAttribute(Attributes.ATTACK_SPEED) != null){
-                livingEntity.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(SpawningConfig.getAttackSpeed(entity.getType()));
+                livingEntity.getAttribute(Attributes.ATTACK_SPEED).setBaseValue(SpawningConfig.getAttackSpeed(entity.getType()) * dailyIncrease);
             }
             if(SpawningConfig.getEntitysArmour(entity.getType()) != 0.0 && livingEntity.getAttribute(Attributes.ARMOR) != null){
-                livingEntity.getAttribute(Attributes.ARMOR).setBaseValue(SpawningConfig.getEntitysArmour(entity.getType()));
+                livingEntity.getAttribute(Attributes.ARMOR).setBaseValue(SpawningConfig.getEntitysArmour(entity.getType()) * dailyIncrease);
             }
             if(SpawningConfig.getEntitysJump(entity.getType()) != 0.0  && livingEntity.getAttribute(Attributes.JUMP_STRENGTH) != null){
-                livingEntity.getAttribute(Attributes.JUMP_STRENGTH).setBaseValue(SpawningConfig.getEntitysJump(entity.getType()));
+                livingEntity.getAttribute(Attributes.JUMP_STRENGTH).setBaseValue(SpawningConfig.getEntitysJump(entity.getType()) * dailyIncrease);
             }
         }
         entity.moveTo(location.getX() + 0.5, location.getY(), location.getZ() + 0.5, 0, 0);
         if(entity instanceof Zombie){
             Zombie entity2 = (Zombie) entity;
             entity2.goalSelector.addGoal(1, new ZombieBreakAndBuildGoal(entity2,1.0));
-            entity2.goalSelector.addGoal(1, new MeleeAttackGoal(entity2, 1.0D, true));
+            entity2.goalSelector.addGoal(2, new MeleeAttackGoal(entity2, 3.0D, true));
         }
         world.addFreshEntity(entity);
         HOB.addEntityToHOBSpawned(entity);
