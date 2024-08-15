@@ -9,9 +9,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
 
@@ -48,7 +45,7 @@ public class Rewards {
                     // Generate random reward amount
                     BigDecimal baseRewardAmount = RewardUtils.getRandomReward(minValue, maxValue);
                     BigDecimal rewardAmount = BigDecimal.valueOf(DayConfig.CURRENT_DAY.get() * baseRewardAmount.intValue());
-                    if(rewardAmount.equals(0)){
+                    if(rewardAmount.compareTo(BigDecimal.ZERO) == 0){
                         rewardAmount = BigDecimal.valueOf(DayConfig.CURRENT_DAY.get());
                     }
 

@@ -1,7 +1,5 @@
 package com.cleardragonf.asura;
 
-import com.cleardragonf.asura.GeneralConfig;
-//import com.cleardragonf.asura.ZombieAIInjector;
 import com.cleardragonf.asura.commands.GenCommands;
 import com.cleardragonf.asura.commands.HOBCommands;
 import com.cleardragonf.asura.daycounter.config.DayConfig;
@@ -15,20 +13,15 @@ import com.cleardragonf.asura.utilities.DeathTracking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 

@@ -6,8 +6,12 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -15,8 +19,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -40,18 +46,36 @@ public class HOBCommands {
                 .then(Commands.literal("reset")
                         .executes(context -> executeReset(context)))
                 .then(Commands.literal("hit")
-                        .then(Commands.argument("player", StringArgumentType.word())
+                        .then(Commands.argument("player", EntityArgument.player())
+                                .suggests((context, builder) -> suggestSpecificPlayers(context, builder))
+                                .executes(context -> {
+                                    // Command logic here
+                                    return 1;
+                                })
                                 .then(Commands.argument("mob", StringArgumentType.greedyString()) // Using greedyString here
                                         .suggests((context, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
                                                 ForgeRegistries.ENTITY_TYPES.getKeys().stream()
                                                         .map(ResourceLocation::toString)
                                                         .collect(Collectors.toList()), builder))
                                         .executes(context -> executeHit(context, StringArgumentType.getString(context, "player"), StringArgumentType.getString(context, "mob"))))))
-//                .then(Commands.literal("day")
-//                        .executes(context -> executeDay(context)))
+                .then(Commands.literal("day")
+                        .executes(context -> executeDay(context)))
                 .then(Commands.literal("clean")
                         .executes(context -> executeClean(context)))
         );
+    }
+
+    private static CompletableFuture<Suggestions> suggestSpecificPlayers(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
+        // Get a list of specific players to suggest
+        Collection<ServerPlayer> players = context.getSource().getServer().getPlayerList().getPlayers();
+        Collection<String> playerNames = players.stream()
+                .filter(player -> /* Apply any filtering logic here */ true)
+                .map(ServerPlayer::getName)
+                .map(Object::toString)
+                .collect(Collectors.toList());
+
+        // Use SharedSuggestionProvider to suggest player names
+        return SharedSuggestionProvider.suggest(playerNames, builder);
     }
 
     private static int executeReset(CommandContext<CommandSourceStack> context) {
@@ -138,15 +162,12 @@ public class HOBCommands {
             return 0;
         }
 
-        // Implement mob spawning or other logic here
         source.sendSuccess(() -> Component.literal("You have sent a " + mobName + " after " + playerName), true);
         return 1;
     }
 
-//    private static int executeDay(CommandContext<CommandSourceStack> context) {
-//        ServerLevel world = context.getSource().getLevel();
-//        world.setDayTime(1000); // Set the time to day (1000 ticks)
-//        context.getSource().sendSuccess(() -> Component.literal("Time set to day"), true);
-//        return 1;
-//    }
+    private static int executeDay(CommandContext<CommandSourceStack> context) {
+        context.getSource().sendSuccess(() -> Component.literal("Current Day is: " + HOB.currentDay), true);
+        return 1;
+    }
 }
