@@ -21,11 +21,9 @@ import java.util.Map;
 import static com.cleardragonf.asura.HOB.economyManager;
 import static com.cleardragonf.asura.utilities.Formatting.formatAsCurrency;
 
-@Mod.EventBusSubscriber(modid = HOB.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class Rewards {
 
-    @SubscribeEvent
-    public static void onEntityDeath(LivingDeathEvent event) {
+    public static void death(LivingDeathEvent event) {
         LivingEntity entity = event.getEntity();
         DamageSource source = event.getSource();
 
@@ -35,13 +33,13 @@ public class Rewards {
             Player player = (Player) source.getEntity();
             String entityType = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
 
-            System.out.println("Entity Type: " + entityType);  // Debug log
+            //System.out.println("Entity Type: " + entityType);  // Debug log
 
             Map<String, BigDecimal> rewardValues = RewardsConfig.getRewards().get(entityType);
-            System.out.println("Reward Values: " + rewardValues);  // Debug log
+            //System.out.println("Reward Values: " + rewardValues);  // Debug log
 
             if (rewardValues == null) {
-                System.out.println("Reward values for " + entityType + " not found in configuration.");
+                //System.out.println("Reward values for " + entityType + " not found in configuration.");
             } else {
                 BigDecimal minValue = rewardValues.get("minValue");
                 BigDecimal maxValue = rewardValues.get("maxValue");

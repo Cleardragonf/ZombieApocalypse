@@ -1,7 +1,8 @@
 package com.cleardragonf.asura;
 
 import com.cleardragonf.asura.GeneralConfig;
-import com.cleardragonf.asura.ZombieAIInjector;
+//import com.cleardragonf.asura.ZombieAIInjector;
+import com.cleardragonf.asura.commands.GenCommands;
 import com.cleardragonf.asura.commands.HOBCommands;
 import com.cleardragonf.asura.daycounter.config.DayConfig;
 import com.cleardragonf.asura.hobpayments.commands.EconomyCommands;
@@ -10,6 +11,7 @@ import com.cleardragonf.asura.mobspawning.config.SpawningConfig;
 import com.cleardragonf.asura.mobspawning.SpawnControl.Spawning;
 import com.cleardragonf.asura.rewards.Rewards;
 import com.cleardragonf.asura.rewards.config.RewardsConfig;
+import com.cleardragonf.asura.utilities.DeathTracking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +22,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -56,9 +59,9 @@ public class HOB {
     public HOB() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         MinecraftForge.EVENT_BUS.register(this);
-        MinecraftForge.EVENT_BUS.register(new ZombieAIInjector());
+//        MinecraftForge.EVENT_BUS.register(new ZombieAIInjector());
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
-        MinecraftForge.EVENT_BUS.addListener(this::onConfigChange);
+        MinecraftForge.EVENT_BUS.addListener(this::onEntityDeath);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, COMMON_SPEC, "HOB/balances.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, GeneralConfig.SPEC, "HOB/General.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RewardsConfig.SPEC, "HOB/Rewards.toml");
@@ -73,7 +76,12 @@ public class HOB {
 
     }
 
-    private void setup(final FMLCommonSetupEvent event) {
+    public void onEntityDeath(LivingDeathEvent event) {
+        Rewards.death(event);
+        DeathTracking.locate(event);
+    }
+
+        private void setup(final FMLCommonSetupEvent event) {
         // Perform any necessary setup here
         SPAWN_INTERVAL = SpawningConfig.getRestPeriod() * TICKS_PER_SECOND;
     }
@@ -129,11 +137,11 @@ public class HOB {
 
     @SubscribeEvent
     public void onEntityJoinWorld(EntityJoinLevelEvent event) {
-        if (event.getEntity().getType() == EntityType.ZOMBIE) {
-            Zombie zombie = (Zombie) event.getEntity();
-            zombie.goalSelector.addGoal(1, new ZombieBreakAndBuildGoal(zombie, 1.0));
-            zombie.goalSelector.addGoal(1, new MeleeAttackGoal(zombie, 1.0D, true));
-        }
+//        if (event.getEntity().getType() == EntityType.ZOMBIE) {
+//            Zombie zombie = (Zombie) event.getEntity();
+//            zombie.goalSelector.addGoal(1, new ZombieBreakAndBuildGoal(zombie, 1.0));
+//            zombie.goalSelector.addGoal(1, new MeleeAttackGoal(zombie, 1.0D, true));
+//        }
     }
 
     public void onServerStarting(ServerStartingEvent event) {
@@ -141,6 +149,7 @@ public class HOB {
         // Register commands
         EconomyCommands.register(event.getServer().getCommands().getDispatcher());
         HOBCommands.register(event.getServer().getCommands().getDispatcher());
+        GenCommands.register(event.getServer().getCommands().getDispatcher());
 
         // Load the current day from the config
         currentDay = DayConfig.CURRENT_DAY.get();

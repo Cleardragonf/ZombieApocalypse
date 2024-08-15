@@ -47,8 +47,8 @@ public class HOBCommands {
                                                         .map(ResourceLocation::toString)
                                                         .collect(Collectors.toList()), builder))
                                         .executes(context -> executeHit(context, StringArgumentType.getString(context, "player"), StringArgumentType.getString(context, "mob"))))))
-                .then(Commands.literal("day")
-                        .executes(context -> executeDay(context)))
+//                .then(Commands.literal("day")
+//                        .executes(context -> executeDay(context)))
                 .then(Commands.literal("clean")
                         .executes(context -> executeClean(context)))
         );
@@ -108,7 +108,7 @@ public class HOBCommands {
 
         EconomyManager eco = HOB.economyManager;
         double balance = eco.getBalance(player.getName().getString());
-        System.out.println(balance);
+        //System.out.println(balance);
 
         ResourceLocation mobResourceLocation = new ResourceLocation(mobName);
         EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(mobResourceLocation);
@@ -143,10 +143,10 @@ public class HOBCommands {
         return 1;
     }
 
-    private static int executeDay(CommandContext<CommandSourceStack> context) {
-        ServerLevel world = context.getSource().getLevel();
-        world.setDayTime(1000); // Set the time to day (1000 ticks)
-        context.getSource().sendSuccess(() -> Component.literal("Time set to day"), true);
-        return 1;
-    }
+//    private static int executeDay(CommandContext<CommandSourceStack> context) {
+//        ServerLevel world = context.getSource().getLevel();
+//        world.setDayTime(1000); // Set the time to day (1000 ticks)
+//        context.getSource().sendSuccess(() -> Component.literal("Time set to day"), true);
+//        return 1;
+//    }
 }
