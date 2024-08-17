@@ -36,10 +36,14 @@ public class Rewards {
             //System.out.println("Reward Values: " + rewardValues);  // Debug log
 
             if (rewardValues == null) {
-                //System.out.println("Reward values for " + entityType + " not found in configuration.");
+                //System.out.println("Reward values for " + entityType + " not found in configurat
+                // ion.");
             } else {
-                BigDecimal minValue = rewardValues.get("minValue");
-                BigDecimal maxValue = rewardValues.get("maxValue");
+                BigDecimal minValueBase = rewardValues.get("minValue");
+                BigDecimal minValue = minValueBase.multiply(BigDecimal.valueOf(HOB.currentDay/2));
+                BigDecimal maxValueBase = rewardValues.get("maxValue");
+                BigDecimal maxValue = maxValueBase.multiply(BigDecimal.valueOf(HOB.currentDay));
+
 
                 if (minValue != null && maxValue != null) {
                     // Generate random reward amount
