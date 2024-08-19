@@ -14,8 +14,13 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import com.cleardragonf.asura.commands.HomeData;
 import org.w3c.dom.Text;
 
 import java.awt.*;
@@ -34,7 +39,7 @@ public class GenCommands {
     private static final int COUNTDOWN_NO_MONEY = 10; // 10 seconds if no money
     private static final int COUNTDOWN_WITH_MONEY = 2; // 2 seconds if enough money
 
-    private static final Map<String, Map<String, Vec3>> playerHomes = new HashMap<>();
+    private static final Map<String, Map<String, HomeData>> playerHomes = new HashMap<>();
     private static final File DATA_FILE = new File("config/player_homes.json"); // File to store home data
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -102,11 +107,12 @@ public class GenCommands {
             String playerName = player.getGameProfile().getName();
             String homeName = StringArgumentType.getString(context, "homeName");
             Vec3 currentLocation = player.position();
+            ResourceKey<Level> currentDimension = player.level().dimension(); // Correctly get the ResourceKey<Level>
             double BASE_COST = 10.0; // Base cost for setting a home
             double INSTANT_MULTIPLIER = 1.5; // Multiplier for instant teleportation cost
 
             // Get or create the player's home map
-            Map<String, Vec3> homes = playerHomes.computeIfAbsent(playerName, k -> new HashMap<>());
+            Map<String, HomeData> homes = playerHomes.computeIfAbsent(playerName, k -> new HashMap<>());
 
             // Calculate cost based on the number of homes
             int numberOfHomes = homes.size();
@@ -128,11 +134,11 @@ public class GenCommands {
             // Deduct the cost
             eco.subtractBalance(playerName, cost);
 
-            // Set the home location
-            homes.put(homeName, currentLocation);
+            // Store the home location and dimension
+            homes.put(homeName, new HomeData(currentLocation, currentDimension)); // Pass ResourceKey<Level> directly
             saveHomeData(); // Save data after modification
             double finalCost = cost;
-            source.sendSuccess(() -> Component.literal("Home '" + homeName + "' set at your current location. Cost: " + finalCost + " coins."), true);
+            source.sendSuccess(() -> Component.literal("Home '" + homeName + "' set at your current location in " + currentDimension + ". Cost: " + finalCost + " coins."), true);
 
             if (!instant) {
                 source.sendSuccess(() -> Component.literal("This home will have a 2-second countdown when used."), true);
@@ -150,7 +156,7 @@ public class GenCommands {
             String homeName = StringArgumentType.getString(context, "homeName");
 
             // Get the player's home map
-            Map<String, Vec3> homes = playerHomes.get(playerName);
+            Map<String, HomeData> homes = playerHomes.get(playerName);
 
             if (homes != null && homes.containsKey(homeName)) {
                 homes.remove(homeName);
@@ -163,6 +169,7 @@ public class GenCommands {
         return 1;
     }
 
+
     private static int executeHome(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
         if (source.getEntity() instanceof ServerPlayer player) {
@@ -171,12 +178,13 @@ public class GenCommands {
             double BASE_COST = 10.0; // Base cost per 10 chunks
             int COUNTDOWN_WITH_MONEY = 2; // Countdown in seconds when the player has enough money
 
-
             // Get the player's home map
-            Map<String, Vec3> homes = playerHomes.get(playerName);
+            Map<String, HomeData> homes = playerHomes.get(playerName);
 
             if (homes != null && homes.containsKey(homeName)) {
-                Vec3 homeLocation = homes.get(homeName);
+                HomeData homeData = homes.get(homeName);
+                Vec3 homeLocation = homeData.getPosition();
+                ResourceKey<Level> homeDimension = homeData.getDimension();
                 Vec3 currentLocation = player.position();
 
                 // Calculate the distance in blocks
@@ -196,8 +204,13 @@ public class GenCommands {
                     CompletableFuture.runAsync(() -> {
                         try {
                             Thread.sleep(countdown * 1000); // Countdown
-                            player.teleportTo(homeLocation.x, homeLocation.y, homeLocation.z);
-                            source.sendSuccess(() -> Component.literal("Teleported to home '" + homeName + "'."), true);
+                            ServerLevel targetLevel = player.getServer().getLevel(homeDimension);
+                            if (targetLevel != null) {
+                                player.teleportTo(targetLevel, homeLocation.x, homeLocation.y, homeLocation.z, player.getYRot(), player.getXRot());
+                                source.sendSuccess(() -> Component.literal("Teleported to home '" + homeName + "'."), true);
+                            } else {
+                                source.sendFailure(Component.literal("Cannot find the dimension for home '" + homeName + "'."));
+                            }
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -211,8 +224,13 @@ public class GenCommands {
                     CompletableFuture.runAsync(() -> {
                         try {
                             Thread.sleep(countdown * 1000); // Countdown
-                            player.teleportTo(homeLocation.x, homeLocation.y, homeLocation.z);
-                            source.sendSuccess(() -> Component.literal("Teleported to home '" + homeName + "'. Cost: " + cost + " coins."), true);
+                            ServerLevel targetLevel = player.getServer().getLevel(homeDimension);
+                            if (targetLevel != null) {
+                                player.teleportTo(targetLevel, homeLocation.x, homeLocation.y, homeLocation.z, player.getYRot(), player.getXRot());
+                                source.sendSuccess(() -> Component.literal("Teleported to home '" + homeName + "'. Cost: " + cost + " coins."), true);
+                            } else {
+                                source.sendFailure(Component.literal("Cannot find the dimension for home '" + homeName + "'."));
+                            }
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -232,26 +250,37 @@ public class GenCommands {
             Vec3 currentLocation = player.position();
 
             // Get the player's home map
-            Map<String, Vec3> homes = playerHomes.get(playerName);
+            Map<String, HomeData> homes = playerHomes.get(playerName);
 
             if (homes != null && !homes.isEmpty()) {
                 Component homeList = Component.literal("Your saved homes:\n");
-                for (Map.Entry<String, Vec3> entry : homes.entrySet()) {
+                for (Map.Entry<String, HomeData> entry : homes.entrySet()) {
                     String homeName = entry.getKey();
-                    Vec3 homeLocation = entry.getValue();
-                    double distance = currentLocation.distanceTo(homeLocation);
-                    double chunkDistance = Math.ceil(distance / 160.0);
-                    double cost = 10 + (chunkDistance * 10);
+                    HomeData homeData = entry.getValue();
 
-                    // Create clickable text for each home
-                    Component homeText = Component.literal(homeName)
-                            .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x00FF00)) // Use RGB for green
-                                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/home " + homeName))
-                                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Teleport to " + homeName))))
-                            .append(Component.literal(" - " + cost + " units\n"));
+                    if (homeData != null) {
+                        Vec3 homeLocation = homeData.getPosition();
 
-                    // Append to the list of homes
-                    homeList = ((MutableComponent) homeList).append(homeText);
+                        if (homeLocation != null) {
+                            double distance = currentLocation.distanceTo(homeLocation);
+                            double chunkDistance = Math.ceil(distance / 160.0);
+                            double cost = 10 + (chunkDistance * 10);
+
+                            // Create clickable text for each home
+                            Component homeText = Component.literal(homeName)
+                                    .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x00FF00)) // Use RGB for green
+                                            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/home " + homeName))
+                                            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Teleport to " + homeName))))
+                                    .append(Component.literal(" - " + cost + " units\n"));
+
+                            // Append to the list of homes
+                            homeList = ((MutableComponent) homeList).append(homeText);
+                        } else {
+                            source.sendFailure(Component.literal("Home location for '" + homeName + "' is not set properly."));
+                        }
+                    } else {
+                        source.sendFailure(Component.literal("Home data for '" + homeName + "' is missing."));
+                    }
                 }
                 Component finalHomeList = homeList;
                 source.sendSuccess(() -> finalHomeList, false);
@@ -277,8 +306,8 @@ public class GenCommands {
         }
         try (FileReader reader = new FileReader(DATA_FILE)) {
             Gson gson = new Gson();
-            Type type = new TypeToken<Map<String, Map<String, Vec3>>>() {}.getType();
-            Map<String, Map<String, Vec3>> data = gson.fromJson(reader, type);
+            Type type = new TypeToken<Map<String, Map<String, HomeData>>>() {}.getType();
+            Map<String, Map<String, HomeData>> data = gson.fromJson(reader, type);
             if (data != null) {
                 playerHomes.clear();
                 playerHomes.putAll(data);
@@ -287,5 +316,6 @@ public class GenCommands {
             e.printStackTrace();
         }
     }
+
 
 }
