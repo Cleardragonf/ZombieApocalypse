@@ -186,6 +186,7 @@ public class GenCommands {
                 Vec3 homeLocation = homeData.getPosition();
                 ResourceKey<Level> homeDimension = homeData.getDimension();
                 Vec3 currentLocation = player.position();
+                ResourceKey<Level> currentDimension = player.level().dimension();
 
                 // Calculate the distance in blocks
                 double distance = currentLocation.distanceTo(homeLocation);
@@ -193,6 +194,11 @@ public class GenCommands {
                 // Calculate the cost based on the distance (in chunks of 10)
                 double chunkDistance = distance / 160.0;
                 double cost = BASE_COST * chunkDistance;
+
+                // Check if dimensions are different and adjust cost
+                if (!homeDimension.equals(currentDimension)) {
+                    cost *= 10; // Multiply cost by 10 if dimensions are different
+                }
 
                 EconomyManager eco = HOB.economyManager;
                 double balance = eco.getBalance(playerName);
@@ -221,13 +227,14 @@ public class GenCommands {
                     source.sendSuccess(() -> Component.literal("Starting teleportation countdown..."), true);
 
                     int countdown = COUNTDOWN_WITH_MONEY;
+                    double finalCost = cost;
                     CompletableFuture.runAsync(() -> {
                         try {
                             Thread.sleep(countdown * 1000); // Countdown
                             ServerLevel targetLevel = player.getServer().getLevel(homeDimension);
                             if (targetLevel != null) {
                                 player.teleportTo(targetLevel, homeLocation.x, homeLocation.y, homeLocation.z, player.getYRot(), player.getXRot());
-                                source.sendSuccess(() -> Component.literal("Teleported to home '" + homeName + "'. Cost: " + cost + " coins."), true);
+                                source.sendSuccess(() -> Component.literal("Teleported to home '" + homeName + "'. Cost: " + finalCost + " coins."), true);
                             } else {
                                 source.sendFailure(Component.literal("Cannot find the dimension for home '" + homeName + "'."));
                             }
@@ -248,6 +255,7 @@ public class GenCommands {
         if (source.getEntity() instanceof ServerPlayer player) {
             String playerName = player.getGameProfile().getName();
             Vec3 currentLocation = player.position();
+            ResourceKey<Level> currentDimension = player.level().dimension(); // Get the current dimension
 
             // Get the player's home map
             Map<String, HomeData> homes = playerHomes.get(playerName);
@@ -260,11 +268,19 @@ public class GenCommands {
 
                     if (homeData != null) {
                         Vec3 homeLocation = homeData.getPosition();
+                        ResourceKey<Level> homeDimension = homeData.getDimension(); // Get the home dimension
 
                         if (homeLocation != null) {
                             double distance = currentLocation.distanceTo(homeLocation);
                             double chunkDistance = Math.ceil(distance / 160.0);
+
+                            // Base cost for teleportation
                             double cost = 10 + (chunkDistance * 10);
+
+                            // Apply cost multiplier if not in the same dimension
+                            if (!currentDimension.equals(homeDimension)) {
+                                cost *= 10; // 10 times the base cost
+                            }
 
                             // Create clickable text for each home
                             Component homeText = Component.literal(homeName)
