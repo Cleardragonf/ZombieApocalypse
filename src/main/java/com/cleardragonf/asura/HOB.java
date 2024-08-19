@@ -80,6 +80,8 @@ public class HOB {
 
     @SubscribeEvent
     public void onWorldTick(TickEvent.LevelTickEvent event) {
+        boolean isNightTime = event.level.getDayTime() % 24000L > 13000L && event.level.getDayTime() % 24000L < 23000L;
+
         if (event.level.isClientSide()) {
             return;
         }
@@ -90,7 +92,9 @@ public class HOB {
             tickCounter = 0;
             if (event.level instanceof ServerLevel serverLevel) {
                 // Call the selectPlayers method here
-                spawning.selectPlayers(serverLevel);
+                if(isNightTime){
+                    spawning.selectPlayers(serverLevel);
+                }
             }
         }
 

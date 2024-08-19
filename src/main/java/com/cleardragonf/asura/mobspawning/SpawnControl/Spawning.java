@@ -192,12 +192,6 @@ public class Spawning {
 
     // Checks if a location is safe for spawning an entity
     private boolean isSafeSpawnLocation(BlockPos pos, ServerLevel world, EntityType<?> entityType) {
-        // Check if it is night time
-        boolean isNightTime = world.getDayTime() % 24000L > 13000L && world.getDayTime() % 24000L < 23000L;
-
-        if (!isNightTime) {
-            return false; // Only spawn at night
-        }
 
         // Check light level
         int lightLevel = world.getMaxLocalRawBrightness(pos);
