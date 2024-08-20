@@ -1,11 +1,14 @@
 package com.cleardragonf.asura.rewards;
 
 import com.cleardragonf.asura.HOB;
+import com.cleardragonf.asura.capabilities.CustomCapability;
+import com.cleardragonf.asura.capabilities.CustomCapabilityHandler;
 import com.cleardragonf.asura.daycounter.config.DayConfig;
 import com.cleardragonf.asura.rewards.config.RewardsConfig;
 import com.cleardragonf.asura.hobpayments.api.HOBPaymentsAPI;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -29,6 +32,11 @@ public class Rewards {
         if (source.getEntity() instanceof Player && !(entity instanceof Player)) {
             Player player = (Player) source.getEntity();
             String entityType = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
+
+            Mob mob = (Mob) entity;
+            mob.getCapability(CustomCapabilityHandler.CUSTOM_CAPABILITY).ifPresent(cap->{
+                System.out.println("Rewards available: " + cap.getCustomData());
+            });
 
             //System.out.println("Entity Type: " + entityType);  // Debug log
 
