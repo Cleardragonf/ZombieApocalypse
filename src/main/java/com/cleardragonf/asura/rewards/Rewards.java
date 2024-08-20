@@ -3,6 +3,7 @@ package com.cleardragonf.asura.rewards;
 import com.cleardragonf.asura.HOB;
 import com.cleardragonf.asura.capabilities.CustomCapability;
 import com.cleardragonf.asura.capabilities.CustomCapabilityHandler;
+import com.cleardragonf.asura.capabilities.ICustomCapability;
 import com.cleardragonf.asura.daycounter.config.DayConfig;
 import com.cleardragonf.asura.rewards.config.RewardsConfig;
 import com.cleardragonf.asura.hobpayments.api.HOBPaymentsAPI;
@@ -11,6 +12,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -23,6 +26,24 @@ import static com.cleardragonf.asura.utilities.Formatting.formatAsCurrency;
 
 public class Rewards {
 
+    public static int OverRewards;
+
+    private static void checkEntityCapability(ICapabilityProvider entity) {
+        // Check if the entity has the custom capability
+        LazyOptional<ICustomCapability> capability = entity.getCapability(CustomCapabilityHandler.CUSTOM_CAPABILITY);
+
+        if (capability.isPresent()) {
+            // Capability is attached, perform any debug actions or logs here
+            capability.ifPresent(cap -> {
+                OverRewards = cap.getCustomData();
+                System.out.println("Entity has capability with data: " + cap.getCustomData());
+            });
+        } else {
+            // Capability is not attached, perform any debug actions or logs here
+            System.out.println("Entity does not have the custom capability.");
+        }
+    }
+
     public static void death(LivingDeathEvent event) {
         LivingEntity entity = event.getEntity();
         DamageSource source = event.getSource();
@@ -33,10 +54,10 @@ public class Rewards {
             Player player = (Player) source.getEntity();
             String entityType = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
 
-            Mob mob = (Mob) entity;
-            mob.getCapability(CustomCapabilityHandler.CUSTOM_CAPABILITY).ifPresent(cap->{
-                System.out.println("Rewards available: " + cap.getCustomData());
-            });
+//            Mob mob = (Mob) entity;
+//            mob.getCapability(CustomCapabilityHandler.CUSTOM_CAPABILITY).ifPresent(cap->{
+//                System.out.println("Rewards available: " + cap.getCustomData());
+//            });
 
             //System.out.println("Entity Type: " + entityType);  // Debug log
 
@@ -67,6 +88,8 @@ public class Rewards {
                     // Format and send a message to the player
                     String formattedReward = formatAsCurrency(rewardAmount);
                     player.sendSystemMessage(Component.literal("You received " + formattedReward + " for killing a " + entityType + "!"));
+                    player.sendSystemMessage(Component.literal("You SHOULD Receive " + OverRewards + " for killing a " + entityType + "!"));
+
                 }
             }
             HOB.killEntityFromHOBSpawned(entity);

@@ -3,9 +3,11 @@ package com.cleardragonf.asura;
 import com.cleardragonf.asura.capabilities.CustomCapabilityAttacher;
 import com.cleardragonf.asura.capabilities.CustomCapabilityHandler;
 import com.cleardragonf.asura.capabilities.CustomCapabilityStorage;
+import com.cleardragonf.asura.capabilities.ICustomCapability;
 import com.cleardragonf.asura.commands.GenCommands;
 import com.cleardragonf.asura.commands.HOBCommands;
 import com.cleardragonf.asura.daycounter.config.DayConfig;
+import com.cleardragonf.asura.hobpayments.api.HOBPaymentsAPI;
 import com.cleardragonf.asura.hobpayments.commands.EconomyCommands;
 import com.cleardragonf.asura.hobpayments.economy.EconomyManager;
 import com.cleardragonf.asura.mobspawning.config.SpawningConfig;
@@ -14,14 +16,21 @@ import com.cleardragonf.asura.rewards.Rewards;
 import com.cleardragonf.asura.rewards.config.RewardsConfig;
 import com.cleardragonf.asura.utilities.DeathTracking;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -30,10 +39,12 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.cleardragonf.asura.hobpayments.config.ModConfig.COMMON_SPEC;
+import static com.cleardragonf.asura.utilities.Formatting.formatAsCurrency;
 
 @Mod(HOB.MODID)
 public class HOB {
@@ -60,6 +71,9 @@ public class HOB {
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarting);
         MinecraftForge.EVENT_BUS.addListener(this::onEntityDeath);
         MinecraftForge.EVENT_BUS.addListener(this::onEntityJoined);
+//        MinecraftForge.EVENT_BUS.addListener(this::onEntityTick);
+//        MinecraftForge.EVENT_BUS.addListener(this::onLivingTick);
+        MinecraftForge.EVENT_BUS.addListener(this::onLivingDamage);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, COMMON_SPEC, "HOB/balances.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, GeneralConfig.SPEC, "HOB/General.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, RewardsConfig.SPEC, "HOB/Rewards.toml");
@@ -94,6 +108,58 @@ public class HOB {
     @SubscribeEvent
     public void onEntityJoined(EntityJoinLevelEvent event){
 
+    }
+
+    @SubscribeEvent
+    public void onEntityTick(TickEvent.PlayerTickEvent event){
+        if(event.phase == TickEvent.Phase.END){
+            checkEntityCapability(event.player);
+        }
+    }
+
+    @SubscribeEvent
+    public void onLivingTick(LivingEvent.LivingTickEvent event){
+        LivingEntity entity = event.getEntity();
+        checkEntityCapability(entity);
+    }
+
+    private static void checkEntityCapability(ICapabilityProvider entity) {
+        // Check if the entity has the custom capability
+        LazyOptional<ICustomCapability> capability = entity.getCapability(CustomCapabilityHandler.CUSTOM_CAPABILITY);
+
+        if (capability.isPresent()) {
+            // Capability is attached, perform any debug actions or logs here
+            capability.ifPresent(cap -> {
+                System.out.println("Entity has capability with data: " + cap.getCustomData());
+            });
+        } else {
+            // Capability is not attached, perform any debug actions or logs here
+            System.out.println("Entity does not have the custom capability.");
+        }
+    }
+
+    @SubscribeEvent
+    public void onLivingDamage(LivingDamageEvent event) {
+        LivingEntity entity = event.getEntity();
+
+        // Check if entity is about to die
+        if (entity.getHealth() - event.getAmount() <= 0.0F) {
+            // Entity is about to die, perform reward logic
+            if (event.getSource().getEntity() instanceof Player && !(entity instanceof Player)) {
+                Player player = (Player) event.getSource().getEntity();
+
+                entity.getCapability(CustomCapabilityHandler.CUSTOM_CAPABILITY).ifPresent(cap -> {
+                    System.out.println("Rewarding player for defeating mob with custom data: " + cap.getCustomData());
+                    // Get and process the reward data from the capability
+                    BigDecimal rewardAmount = Rewards.rewardLookup(entity);
+                    HOBPaymentsAPI.addBalance(player.getName().getString(), rewardAmount.doubleValue());
+
+                    // Send reward message to player
+                    String formattedReward = formatAsCurrency(rewardAmount);
+                    player.sendSystemMessage(Component.literal("You received " + formattedReward + " for defeating a " + entity.getType() + "!"));
+                });
+            }
+        }
     }
 
     @SubscribeEvent

@@ -251,7 +251,7 @@ public class Spawning {
             mob.getCapability(CustomCapabilityHandler.CUSTOM_CAPABILITY).ifPresent(cap -> {
                 LivingEntity entity1 = (LivingEntity) entity;
                 System.out.println("Giving " + mob + " for: " + Rewards.rewardLookup(entity1).intValue());
-                cap.setCustomData(Rewards.rewardLookup(entity1).intValue());  // Example of setting custom data when the mob spawns
+                cap.setCustomData(41);  // Example of setting custom data when the mob spawns
 
             });
 

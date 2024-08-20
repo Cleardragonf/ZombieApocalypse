@@ -48,8 +48,8 @@ public class RewardsConfig {
                 Map<String, BigDecimal> valueMap = new HashMap<>();
 
                 // Print the value parts for debugging
-                System.out.println("Entity Type: " + entityType);
-                System.out.println("Value Parts: " + List.of(valueParts));
+//                System.out.println("Entity Type: " + entityType);
+//                System.out.println("Value Parts: " + List.of(valueParts));
 
                 for (String valuePart : valueParts) {
                     // Split by '=' to get the key and value
@@ -71,7 +71,7 @@ public class RewardsConfig {
         }
 
         // Print the rewards map for debugging
-        System.out.println("Rewards Map: " + rewardsMap);
+//        System.out.println("Rewards Map: " + rewardsMap);
 
         return rewardsMap;
     }
