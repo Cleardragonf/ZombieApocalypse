@@ -4,6 +4,7 @@ import com.cleardragonf.asura.HOB;
 import com.cleardragonf.asura.capabilities.CustomCapabilityHandler;
 import com.cleardragonf.asura.mobspawning.ai.ZombieBreakAndBuildGoal;
 import com.cleardragonf.asura.mobspawning.config.SpawningConfig;
+import com.cleardragonf.asura.rewards.Rewards;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -246,11 +247,13 @@ public class Spawning {
             entity2.goalSelector.addGoal(1, new ZombieBreakAndBuildGoal(entity2,1.0));
             entity2.goalSelector.addGoal(2, new MeleeAttackGoal(entity2, 3.0D, true));
         }
-        Mob mob = (Mob) entity;
-        mob.getCapability(CustomCapabilityHandler.CUSTOM_CAPABILITY).ifPresent(cap -> {
-            System.out.println("ATTACHED");
-            cap.setCustomData(42);  // Example of setting custom data when the mob spawns
-        });
+            Mob mob = (Mob) entity;
+            mob.getCapability(CustomCapabilityHandler.CUSTOM_CAPABILITY).ifPresent(cap -> {
+                LivingEntity entity1 = (LivingEntity) entity;
+                System.out.println("Giving " + mob + " for: " + Rewards.rewardLookup(entity1).intValue());
+                cap.setCustomData(Rewards.rewardLookup(entity1).intValue());  // Example of setting custom data when the mob spawns
+
+            });
 
         world.addFreshEntity(entity);
 

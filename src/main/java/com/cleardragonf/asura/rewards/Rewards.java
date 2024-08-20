@@ -100,4 +100,34 @@ public class Rewards {
 
         }
     }
+    public static BigDecimal rewardLookup(LivingEntity entity) {
+        String entityType = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()).toString();
+
+        // Initialize the rewardAmount to a default value
+        BigDecimal rewardAmount = BigDecimal.ZERO;
+
+
+        Map<String, BigDecimal> rewardValues = RewardsConfig.getRewards().get(entityType);
+
+        if (rewardValues != null) {
+            BigDecimal minValueBase = rewardValues.get("minValue");
+            BigDecimal minValue = minValueBase.multiply(BigDecimal.valueOf(HOB.currentDay / 2));
+            BigDecimal maxValueBase = rewardValues.get("maxValue");
+            BigDecimal maxValue = maxValueBase.multiply(BigDecimal.valueOf(HOB.currentDay));
+
+            if (minValue != null && maxValue != null) {
+                // Generate random reward amount
+                BigDecimal baseRewardAmount = RewardUtils.getRandomReward(minValue, maxValue);
+                rewardAmount = BigDecimal.valueOf(DayConfig.CURRENT_DAY.get() * baseRewardAmount.intValue());
+
+                if (rewardAmount.compareTo(BigDecimal.ZERO) == 0) {
+                    rewardAmount = BigDecimal.valueOf(DayConfig.CURRENT_DAY.get());
+                }
+            }
+        }
+
+        // Return the computed or default rewardAmount
+        System.out.println("REWARED IS: " + rewardAmount);
+        return rewardAmount;
+    }
 }

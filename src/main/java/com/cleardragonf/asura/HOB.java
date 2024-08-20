@@ -93,13 +93,7 @@ public class HOB {
 
     @SubscribeEvent
     public void onEntityJoined(EntityJoinLevelEvent event){
-        if (event.getEntity() instanceof Mob) {
-            Mob mob = (Mob) event.getEntity();
-            mob.getCapability(CustomCapabilityHandler.CUSTOM_CAPABILITY).ifPresent(cap -> {
-                System.out.println("Giving " + mob + " a great 42");
-                cap.setCustomData(42);  // Example of setting custom data when the mob spawns
-            });
-        }
+
     }
 
     @SubscribeEvent

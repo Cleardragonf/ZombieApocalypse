@@ -13,7 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public class CustomCapabilityAttacher {
 
-    private static final ResourceLocation CAPABILITY_ID = new ResourceLocation("yourmodid", "custom_capability");
+    private static final ResourceLocation CAPABILITY_ID = new ResourceLocation("ourmod", "custom_capability");
 
     @SubscribeEvent
     public static void onAttachCapabilities(AttachCapabilitiesEvent<Entity> event) {
